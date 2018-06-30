@@ -41,11 +41,17 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QERenderingModule.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="QEBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QERenderingModule.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="QEBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

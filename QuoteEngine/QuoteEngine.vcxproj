@@ -160,9 +160,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="QEBuffer.cpp" />
     <ClCompile Include="QERenderingModule.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="QEBuffer.h" />
     <ClInclude Include="QERenderingModule.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
