@@ -5,13 +5,15 @@
 class QERenderingModule
 {
 public:
-	static const Microsoft::WRL::ComPtr<ID3D11Device> gDevice;
-	static const Microsoft::WRL::ComPtr<ID3D11DeviceContext> gDeviceContext;
-
+	static Microsoft::WRL::ComPtr<ID3D11Device> gDevice;
+	static Microsoft::WRL::ComPtr<ID3D11DeviceContext> gDeviceContext;
+	static Microsoft::WRL::ComPtr<IDXGISwapChain> gSwapChain;
+	static Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gBackbufferRTV;
+	
 	QERenderingModule(HWND WindowHandle);
 	~QERenderingModule();
 
 private:
-
+	HRESULT createDirect3DContext(HWND wndHandle);
 };
 
