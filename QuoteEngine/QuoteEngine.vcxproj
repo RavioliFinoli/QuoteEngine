@@ -160,6 +160,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="QERenderingModule.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="QERenderingModule.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
