@@ -46,12 +46,18 @@
     <ClCompile Include="QEBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="QEShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QERenderingModule.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="QEBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QEShader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
