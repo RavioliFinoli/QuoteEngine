@@ -1,9 +1,9 @@
 #include "QERenderingModule.h"
 
-Microsoft::WRL::ComPtr<ID3D11Device> QERenderingModule::gDevice = nullptr;
-Microsoft::WRL::ComPtr<ID3D11DeviceContext> QERenderingModule::gDeviceContext = nullptr;
-Microsoft::WRL::ComPtr<IDXGISwapChain> QERenderingModule::gSwapChain = nullptr;
-Microsoft::WRL::ComPtr<ID3D11RenderTargetView> QERenderingModule::gBackbufferRTV = nullptr;
+Microsoft::WRL::ComPtr<ID3D11Device> QERenderingModule::gDevice(nullptr);
+Microsoft::WRL::ComPtr<ID3D11DeviceContext> QERenderingModule::gDeviceContext(nullptr);
+Microsoft::WRL::ComPtr<IDXGISwapChain> QERenderingModule::gSwapChain(nullptr);
+Microsoft::WRL::ComPtr<ID3D11RenderTargetView> QERenderingModule::gBackbufferRTV(nullptr);
 QERenderingModule::QERenderingModule(HWND WindowHandle)
 {
 	createDirect3DContext(WindowHandle);
