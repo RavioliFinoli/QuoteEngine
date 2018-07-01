@@ -1,8 +1,8 @@
 #pragma once
 #include <d3d11.h>
 #include <vector>
+#include "QEConstantBuffer.h"
 
-class QEConstantBuffer;
 class QETexture;
 
 namespace QuoteEngine
@@ -35,6 +35,8 @@ namespace QuoteEngine
 	private:
 		std::vector<std::pair<unsigned int, QEConstantBuffer*>>	m_ConstantBuffers;
 		std::vector<std::pair<unsigned int, QETexture*>>	m_Textures;
+
+		std::vector<ID3D11Buffer*> m_RawBuffers;
 
 		//Binds resources to the currently bound shader of the passed in shader type
 		HRESULT bindResources(SHADER_TYPE);
