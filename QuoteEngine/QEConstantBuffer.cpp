@@ -15,6 +15,7 @@ QuoteEngine::QEConstantBuffer::QEConstantBuffer(size_t bufferSize, void * initia
 
 QuoteEngine::QEConstantBuffer::~QEConstantBuffer()
 {
+	delete[] m_Data;
 }
 
 ID3D11Buffer * QuoteEngine::QEConstantBuffer::get()
