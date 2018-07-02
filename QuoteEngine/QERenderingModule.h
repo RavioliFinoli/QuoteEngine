@@ -3,6 +3,7 @@
 #include <wrl.h>
 #include <vector>
 #include "QEModel.h"
+#include "QEShader.h"
 
 class QERenderingModule
 {
@@ -20,6 +21,8 @@ public:
 
 private:
 	std::vector<QEModel> m_Models;
+	std::vector<QuoteEngine::QEShader> m_Shaders;
+
 
 	HRESULT createDirect3DContext(HWND wndHandle);
 	void createViewport();
