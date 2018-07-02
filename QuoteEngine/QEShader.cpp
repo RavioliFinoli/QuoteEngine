@@ -114,6 +114,31 @@ HRESULT QuoteEngine::QEShader::compileFromFile(QuoteEngine::SHADER_TYPE type, LP
 	return result;
 }
 
+HRESULT QuoteEngine::QEShader::bindShaderAndResources()
+{
+	switch (m_Type)
+	{
+	case QuoteEngine::SHADER_TYPE::VERTEX_SHADER:
+		QERenderingModule::gDeviceContext->VSSetShader(m_VertexShader.Get(), nullptr, 0);
+		break;
+	case QuoteEngine::SHADER_TYPE::PIXEL_SHADER:
+		QERenderingModule::gDeviceContext->PSSetShader(m_PixelShader.Get(), nullptr, 0);
+		break;
+	case QuoteEngine::SHADER_TYPE::GEOMETRY_SHADER:
+		QERenderingModule::gDeviceContext->GSSetShader(m_GeometryShader.Get(), nullptr, 0);
+		break;
+	case QuoteEngine::SHADER_TYPE::COMPUTE_SHADER:
+		QERenderingModule::gDeviceContext->CSSetShader(m_ComputeShader.Get(), nullptr, 0);
+		break;
+	default:
+		break;
+	}
+
+	bindResources();
+
+	return E_NOTIMPL;
+}
+
 void QuoteEngine::QEShader::addConstantBuffers(std::vector<std::pair<unsigned int, QEConstantBuffer*>> buffers)
 {
 	//whenever we add buffers, we add the ID3D11Buffer pointers to a vector for easier binding. They are ordered 
@@ -139,10 +164,10 @@ void QuoteEngine::QEShader::addTextures(std::vector<std::pair<unsigned int, QETe
 		m_Textures.push_back(pair);
 }
 
-HRESULT QuoteEngine::QEShader::bindResources(SHADER_TYPE type)
+HRESULT QuoteEngine::QEShader::bindResources()
 {
 	//Bind constant buffers
-	switch (type)
+	switch (m_Type)
 	{
 	case QuoteEngine::SHADER_TYPE::VERTEX_SHADER:
 		QERenderingModule::gDeviceContext->VSSetConstantBuffers(0, m_RawBuffers.size(), &m_RawBuffers[0]);
@@ -182,4 +207,15 @@ HRESULT QuoteEngine::QEShaderProgram::initializeShaders(std::vector<QEShader*>& 
 		m_Shaders[i] = shaders[i];
 
 	return S_OK;
+}
+
+HRESULT QuoteEngine::QEShaderProgram::initializeInputLayout(const D3D11_INPUT_ELEMENT_DESC * inputDesc, const UINT numElements)
+{
+	return QERenderingModule::gDevice->CreateInputLayout(inputDesc, numElements, nullptr, 0, m_InputLayout.ReleaseAndGetAddressOf());
+}
+
+void QuoteEngine::QEShaderProgram::bind()
+{
+	for (auto shader : m_Shaders)
+		shader->bindShaderAndResources();
 }

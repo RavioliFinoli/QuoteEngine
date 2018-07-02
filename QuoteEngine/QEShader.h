@@ -46,7 +46,7 @@ namespace QuoteEngine
 		std::vector<ID3D11Buffer*> m_RawBuffers;
 
 		//Binds resources to the currently bound shader of the passed in shader type
-		HRESULT bindResources(SHADER_TYPE);
+		HRESULT bindResources();
 
 	};
 
@@ -57,8 +57,11 @@ namespace QuoteEngine
 		~QEShaderProgram();
 
 		HRESULT initializeShaders(std::vector<QEShader*>&);
+		HRESULT initializeInputLayout(const D3D11_INPUT_ELEMENT_DESC*, const UINT numElements);
+		void bind();
 	private:
 		std::vector<QEShader*> m_Shaders;
+		Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;
 	};
 
 
