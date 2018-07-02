@@ -1,4 +1,6 @@
 #include "QERenderingModule.h"
+using QuoteEngine::QEShader;
+using QuoteEngine::QEShaderProgram;
 
 Microsoft::WRL::ComPtr<ID3D11Device> QERenderingModule::gDevice(nullptr);
 Microsoft::WRL::ComPtr<ID3D11DeviceContext> QERenderingModule::gDeviceContext(nullptr);
@@ -12,7 +14,40 @@ QERenderingModule::QERenderingModule(HWND WindowHandle)
 
 HRESULT QERenderingModule::compileShadersAndCreateShaderPrograms()
 {
-	return E_NOTIMPL;
+	HRESULT hr = S_OK;
+	QEShader* vertexShader = new QEShader();
+	hr = vertexShader->compileFromFile(QuoteEngine::SHADER_TYPE::VERTEX_SHADER, L"Vertex.hlsl");
+
+	QEShader* pixelShader = new QEShader();
+	hr = pixelShader->compileFromFile(QuoteEngine::SHADER_TYPE::PIXEL_SHADER, L"Fragment.hlsl");
+
+	QEShaderProgram* basicProgram = new QEShaderProgram();
+	hr = basicProgram->initializeShaders({ vertexShader, pixelShader, nullptr, nullptr });
+	
+	//Create layout
+	D3D11_INPUT_ELEMENT_DESC inputDesc[] = {
+		{
+			"POSITION",		// "semantic" name in shader
+			0,				// "semantic" index (not used)
+			DXGI_FORMAT_R32G32B32_FLOAT, // size of ONE element (3 floats)
+			0,							 // input slot
+			0,							 // offset of first element
+			D3D11_INPUT_PER_VERTEX_DATA, // specify data PER vertex
+			0							 // used for INSTANCING (ignore)
+		},
+		{
+			"COLOR",
+			0,				// same slot as previous (same vertexBuffer)
+			DXGI_FORMAT_R32G32B32_FLOAT,
+			0,
+			12,							// offset of FIRST element (after POSITION)
+			D3D11_INPUT_PER_VERTEX_DATA,
+			0
+		},
+	};
+	basicProgram->initializeInputLayout(inputDesc, 2);
+
+	return hr;
 }
 
 
