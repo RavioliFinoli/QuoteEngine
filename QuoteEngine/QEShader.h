@@ -19,11 +19,11 @@ namespace QuoteEngine
 	{
 	public:
 		QEShader();
-		virtual ~QEShader();
+		~QEShader();
 
-		virtual HRESULT compileFromFile() = 0;
-		virtual HRESULT bindShader() = 0;
-		virtual HRESULT bindShaderAndResources() = 0;
+		HRESULT compileFromFile();
+		HRESULT bindShader();
+		HRESULT bindShaderAndResources();
 
 	protected:
 		//Adds constant buffers to m_ConstantBuffers 
@@ -40,40 +40,5 @@ namespace QuoteEngine
 
 		//Binds resources to the currently bound shader of the passed in shader type
 		HRESULT bindResources(SHADER_TYPE);
-	};
-
-	class QEVertexShader : QEShader
-	{
-	public:
-		QEVertexShader();
-		~QEVertexShader();
-	private:
-	};
-
-	class QEPixelShader : QEShader
-	{
-	public:
-		QEPixelShader();
-		~QEPixelShader();
-	private:
-
-	};
-
-	class QEGeometryShader : QEShader
-	{
-	public:
-		QEGeometryShader();
-		~QEGeometryShader();
-	private:
-
-	};
-
-	class QEComputeShader : QEShader
-	{
-	public:
-		QEComputeShader();
-		~QEComputeShader();
-	private:
-
 	};
 }
