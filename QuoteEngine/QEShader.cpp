@@ -1,14 +1,116 @@
 #include "QEShader.h"
 #include "QERenderingModule.h"
-
+#include <d3dcompiler.h>
+using Microsoft::WRL::ComPtr;
 
 QuoteEngine::QEShader::QEShader()
 {
+	m_VertexShader.Reset();
+	m_PixelShader.Reset();
+	m_GeometryShader.Reset();
+	m_ComputeShader.Reset();
 }
 
 
 QuoteEngine::QEShader::~QEShader()
 {
+}
+
+HRESULT QuoteEngine::QEShader::compileFromFile(QuoteEngine::SHADER_TYPE type, LPCWSTR file)
+{
+	m_Type = type;
+
+	std::string entry = "";
+	std::string shaderModel = "";
+
+	switch (m_Type)
+	{
+	case QuoteEngine::SHADER_TYPE::VERTEX_SHADER:
+		entry = "VS_main";
+		shaderModel = "vs_5_0";
+		break;
+	case QuoteEngine::SHADER_TYPE::PIXEL_SHADER:
+		entry = "PS_main";
+		shaderModel = "ps_5_0";
+		break;
+	case QuoteEngine::SHADER_TYPE::GEOMETRY_SHADER:
+		entry = "GS_main";
+		shaderModel = "gs_5_0";
+		break;
+	case QuoteEngine::SHADER_TYPE::COMPUTE_SHADER:
+		entry = "CS_main";
+		shaderModel = "cs_5_0";
+		break;
+	default:
+		break;
+	}
+	
+	// Binary Large OBject (BLOB), for compiled shader, and errors.
+	ComPtr<ID3DBlob> pVS;
+	ComPtr<ID3DBlob> errorBlob;
+
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/hh968107(v=vs.85).aspx
+	HRESULT result = D3DCompileFromFile(
+		file, // filename
+		nullptr,		// optional macros
+		nullptr,		// optional include files
+		entry.c_str(),		// entry point
+		shaderModel.c_str(),		// shader model (target)
+		D3DCOMPILE_DEBUG,	// shader compile options (DEBUGGING)
+		0,				// IGNORE...DEPRECATED.
+		pVS.ReleaseAndGetAddressOf(),			// double pointer to ID3DBlob		
+		errorBlob.ReleaseAndGetAddressOf()		// pointer for Error Blob messages.
+	);
+
+	// compilation failed?
+	if (FAILED(result))
+	{
+		if (errorBlob.Get())
+		{
+			OutputDebugStringA((char*)errorBlob.Get()->GetBufferPointer());
+		}
+		return result;
+	}
+
+	switch (m_Type)
+	{
+	case QuoteEngine::SHADER_TYPE::VERTEX_SHADER:
+		result = QERenderingModule::gDevice->CreateVertexShader(
+			pVS->GetBufferPointer(),
+			pVS->GetBufferSize(),
+			nullptr,
+			m_VertexShader.ReleaseAndGetAddressOf()
+		);
+		break;
+	case QuoteEngine::SHADER_TYPE::PIXEL_SHADER:
+		result = QERenderingModule::gDevice->CreatePixelShader(
+			pVS->GetBufferPointer(),
+			pVS->GetBufferSize(),
+			nullptr,
+			m_PixelShader.ReleaseAndGetAddressOf()
+		);
+		break;
+	case QuoteEngine::SHADER_TYPE::GEOMETRY_SHADER:
+		result = QERenderingModule::gDevice->CreateGeometryShader(
+			pVS->GetBufferPointer(),
+			pVS->GetBufferSize(),
+			nullptr,
+			m_GeometryShader.ReleaseAndGetAddressOf()
+		);
+		break;
+	case QuoteEngine::SHADER_TYPE::COMPUTE_SHADER:
+		result = QERenderingModule::gDevice->CreateComputeShader(
+			pVS->GetBufferPointer(),
+			pVS->GetBufferSize(),
+			nullptr,
+			m_ComputeShader.ReleaseAndGetAddressOf()
+		);
+		break;
+	default:
+		break;
+	}
+
+	return E_NOTIMPL;
 }
 
 void QuoteEngine::QEShader::addConstantBuffers(std::vector<std::pair<unsigned int, QEConstantBuffer*>> buffers)
