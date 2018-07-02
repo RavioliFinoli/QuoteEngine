@@ -1,6 +1,8 @@
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
+#include <vector>
+#include "QEModel.h"
 
 class QERenderingModule
 {
@@ -14,6 +16,8 @@ public:
 	~QERenderingModule();
 
 private:
+	std::vector<QEModel> m_Models;
+
 	HRESULT createDirect3DContext(HWND wndHandle);
 	void createViewport();
 };
