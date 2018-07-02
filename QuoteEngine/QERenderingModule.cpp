@@ -7,6 +7,7 @@ Microsoft::WRL::ComPtr<ID3D11RenderTargetView> QERenderingModule::gBackbufferRTV
 QERenderingModule::QERenderingModule(HWND WindowHandle)
 {
 	createDirect3DContext(WindowHandle);
+	createViewport();
 }
 
 
