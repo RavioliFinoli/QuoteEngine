@@ -14,6 +14,11 @@ QEModel::~QEModel()
 {
 }
 
+ID3D11Buffer * QEModel::getVertexBuffer()
+{
+	return m_VertexBuffer.Get();
+}
+
 HRESULT QEModel::create()
 {
 	struct TriangleVertex
