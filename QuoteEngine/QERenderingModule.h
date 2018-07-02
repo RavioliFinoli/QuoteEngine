@@ -15,5 +15,6 @@ public:
 
 private:
 	HRESULT createDirect3DContext(HWND wndHandle);
+	void createViewport();
 };
 

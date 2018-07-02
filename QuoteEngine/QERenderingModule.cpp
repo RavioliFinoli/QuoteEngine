@@ -59,3 +59,15 @@ HRESULT QERenderingModule::createDirect3DContext(HWND wndHandle)
 	}
 	return hr;
 }
+
+void QERenderingModule::createViewport()
+{
+	D3D11_VIEWPORT vp;
+	vp.Width = (float)640;
+	vp.Height = (float)480;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	gDeviceContext->RSSetViewports(1, &vp);
+}
