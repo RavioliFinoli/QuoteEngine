@@ -6,6 +6,9 @@ Microsoft::WRL::ComPtr<ID3D11Device> QERenderingModule::gDevice(nullptr);
 Microsoft::WRL::ComPtr<ID3D11DeviceContext> QERenderingModule::gDeviceContext(nullptr);
 Microsoft::WRL::ComPtr<IDXGISwapChain> QERenderingModule::gSwapChain(nullptr);
 Microsoft::WRL::ComPtr<ID3D11RenderTargetView> QERenderingModule::gBackbufferRTV(nullptr);
+void QERenderingModule::render()
+{
+}
 QERenderingModule::QERenderingModule(HWND WindowHandle)
 {
 	createDirect3DContext(WindowHandle);
@@ -48,6 +51,12 @@ HRESULT QERenderingModule::compileShadersAndCreateShaderPrograms()
 	basicProgram->initializeInputLayout(inputDesc, 2);
 
 	return hr;
+}
+
+void QERenderingModule::createModels()
+{
+	QEModel* triangle = new QEModel();
+	m_Models.push_back(triangle);
 }
 
 
