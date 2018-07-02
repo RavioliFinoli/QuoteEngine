@@ -13,6 +13,9 @@ public:
 	static Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gBackbufferRTV;
 	
 	QERenderingModule(HWND WindowHandle);
+
+	HRESULT compileShadersAndCreateShaderPrograms();
+
 	~QERenderingModule();
 
 private:

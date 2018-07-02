@@ -10,6 +10,11 @@ QERenderingModule::QERenderingModule(HWND WindowHandle)
 	createViewport();
 }
 
+HRESULT QERenderingModule::compileShadersAndCreateShaderPrograms()
+{
+	return E_NOTIMPL;
+}
+
 
 QERenderingModule::~QERenderingModule()
 {
