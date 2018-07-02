@@ -49,4 +49,16 @@ namespace QuoteEngine
 		HRESULT bindResources(SHADER_TYPE);
 
 	};
+
+	class QEShaderProgram
+	{
+	public:
+		QEShaderProgram();
+		~QEShaderProgram();
+
+	private:
+
+	};
+
+
 }

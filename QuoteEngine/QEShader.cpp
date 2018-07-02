@@ -107,10 +107,11 @@ HRESULT QuoteEngine::QEShader::compileFromFile(QuoteEngine::SHADER_TYPE type, LP
 		);
 		break;
 	default:
+		result = E_FAIL;
 		break;
 	}
 
-	return E_NOTIMPL;
+	return result;
 }
 
 void QuoteEngine::QEShader::addConstantBuffers(std::vector<std::pair<unsigned int, QEConstantBuffer*>> buffers)
@@ -159,4 +160,13 @@ HRESULT QuoteEngine::QEShader::bindResources(SHADER_TYPE type)
 		break;
 	}
 	return E_NOTIMPL;
+}
+
+
+QuoteEngine::QEShaderProgram::QEShaderProgram()
+{
+}
+
+QuoteEngine::QEShaderProgram::~QEShaderProgram()
+{
 }
