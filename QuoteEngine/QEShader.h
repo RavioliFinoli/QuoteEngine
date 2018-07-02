@@ -56,7 +56,7 @@ namespace QuoteEngine
 		QEShaderProgram();
 		~QEShaderProgram();
 
-		HRESULT initializeShaders(std::vector<QEShader*>&);
+		HRESULT initializeShaders(const std::vector<QEShader*>&);
 		HRESULT initializeInputLayout(const D3D11_INPUT_ELEMENT_DESC*, const UINT numElements);
 		void bind();
 	private:

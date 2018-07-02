@@ -196,7 +196,7 @@ QuoteEngine::QEShaderProgram::~QEShaderProgram()
 {
 }
 
-HRESULT QuoteEngine::QEShaderProgram::initializeShaders(std::vector<QEShader*>& shaders)
+HRESULT QuoteEngine::QEShaderProgram::initializeShaders(const std::vector<QEShader*>& shaders)
 {
 	if (shaders.size() != 4)
 		return E_INVALIDARG;
