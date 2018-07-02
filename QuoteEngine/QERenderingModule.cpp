@@ -6,9 +6,34 @@ Microsoft::WRL::ComPtr<ID3D11Device> QERenderingModule::gDevice(nullptr);
 Microsoft::WRL::ComPtr<ID3D11DeviceContext> QERenderingModule::gDeviceContext(nullptr);
 Microsoft::WRL::ComPtr<IDXGISwapChain> QERenderingModule::gSwapChain(nullptr);
 Microsoft::WRL::ComPtr<ID3D11RenderTargetView> QERenderingModule::gBackbufferRTV(nullptr);
+
 void QERenderingModule::render()
 {
+	// clear the back buffer to a deep blue
+	float clearColor[] = { 0, 0, 0, 1 };
+
+	// use DeviceContext to talk to the API
+	gDeviceContext->ClearRenderTargetView(gBackbufferRTV.Get(), clearColor);
+
+	// specify the topology to use when drawing
+	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//Set shader program (hardcoded for now)
+	m_ShaderPrograms[0]->bind();
+
+	//drawModels();
+	for (auto model : m_Models)
+	{
+		ID3D11Buffer* buffer = model->getVertexBuffer();
+		UINT size = sizeof(float) * 6;
+		UINT offset = 0;
+		gDeviceContext->IASetVertexBuffers(0, 1, &buffer, &size, &offset);
+		gDeviceContext->Draw(model->getVertexCount(), 0);
+	}
+
+	gSwapChain->Present(0, 0);
 }
+
 QERenderingModule::QERenderingModule(HWND WindowHandle)
 {
 	createDirect3DContext(WindowHandle);
@@ -48,7 +73,9 @@ HRESULT QERenderingModule::compileShadersAndCreateShaderPrograms()
 			0
 		},
 	};
-	basicProgram->initializeInputLayout(inputDesc, 2);
+	hr = basicProgram->initializeInputLayout(inputDesc, 2);
+
+	m_ShaderPrograms.push_back(basicProgram);
 
 	return hr;
 }
@@ -89,10 +116,10 @@ HRESULT QERenderingModule::createDirect3DContext(HWND wndHandle)
 		NULL,
 		D3D11_SDK_VERSION,
 		&scd,
-		&gSwapChain,
-		&gDevice,
+		gSwapChain.ReleaseAndGetAddressOf(),
+		gDevice.ReleaseAndGetAddressOf(),
 		NULL,
-		&gDeviceContext);
+		gDeviceContext.ReleaseAndGetAddressOf());
 
 	if (SUCCEEDED(hr))
 	{
@@ -101,11 +128,11 @@ HRESULT QERenderingModule::createDirect3DContext(HWND wndHandle)
 		gSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
 
 		// use the back buffer address to create the render target
-		gDevice->CreateRenderTargetView(pBackBuffer, NULL, &gBackbufferRTV);
+		hr = gDevice->CreateRenderTargetView(pBackBuffer, NULL, gBackbufferRTV.ReleaseAndGetAddressOf());
 		pBackBuffer->Release();
 
 		// set the render target as the back buffer
-		gDeviceContext->OMSetRenderTargets(1, &gBackbufferRTV, NULL);
+		gDeviceContext->OMSetRenderTargets(1, gBackbufferRTV.GetAddressOf(), NULL);
 	}
 	return hr;
 }

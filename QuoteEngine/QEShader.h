@@ -24,6 +24,7 @@ namespace QuoteEngine
 		HRESULT compileFromFile(QuoteEngine::SHADER_TYPE type, LPCWSTR file);
 		HRESULT bindShader();
 		HRESULT bindShaderAndResources();
+		ID3DBlob* getVSBlob();
 
 	protected:
 		//Adds constant buffers to m_ConstantBuffers 
@@ -39,6 +40,7 @@ namespace QuoteEngine
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> m_PixelShader;
 		Microsoft::WRL::ComPtr<ID3D11GeometryShader> m_GeometryShader;
 		Microsoft::WRL::ComPtr<ID3D11ComputeShader> m_ComputeShader;
+		Microsoft::WRL::ComPtr<ID3DBlob> m_VSBlob;
 
 		std::vector<std::pair<unsigned int, QEConstantBuffer*>>	m_ConstantBuffers;
 		std::vector<std::pair<unsigned int, QETexture*>>	m_Textures;
@@ -53,12 +55,20 @@ namespace QuoteEngine
 	class QEShaderProgram
 	{
 	public:
+
+		struct OffsetStride
+		{
+			UINT offset;
+			UINT stride;
+		};
+
 		QEShaderProgram();
 		~QEShaderProgram();
 
 		HRESULT initializeShaders(const std::vector<QEShader*>&);
 		HRESULT initializeInputLayout(const D3D11_INPUT_ELEMENT_DESC*, const UINT numElements);
 		void bind();
+		OffsetStride getOffsetStride();
 	private:
 		std::vector<QEShader*> m_Shaders;
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> m_InputLayout;

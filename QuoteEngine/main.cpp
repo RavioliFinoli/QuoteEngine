@@ -6,6 +6,7 @@
 
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include "QERenderingModule.h"
 
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dcompiler.lib")
@@ -235,13 +236,17 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	
 	if (wndHandle)
 	{
-		CreateDirect3DContext(wndHandle); //2. Skapa och koppla SwapChain, Device och Device Context
+		QERenderingModule renderingModule(wndHandle);
+		renderingModule.compileShadersAndCreateShaderPrograms();
+		renderingModule.createModels();
 
-		SetViewport(); //3. Sätt viewport
+		//CreateDirect3DContext(wndHandle); //2. Skapa och koppla SwapChain, Device och Device Context
 
-		CreateShaders(); //4. Skapa vertex- och pixel-shaders
+		//SetViewport(); //3. Sätt viewport
 
-		CreateTriangleData(); //5. Definiera triangelvertiser, 6. Skapa vertex buffer, 7. Skapa input layout
+		//CreateShaders(); //4. Skapa vertex- och pixel-shaders
+
+		//CreateTriangleData(); //5. Definiera triangelvertiser, 6. Skapa vertex buffer, 7. Skapa input layout
 
 		ShowWindow(wndHandle, nCmdShow);
 
@@ -254,22 +259,12 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			}
 			else
 			{
-				Render(); //8. Rendera
+				renderingModule.render();
+				//Render(); //8. Rendera
 
-				gSwapChain->Present(0, 0); //9. Växla front- och back-buffer
+				//gSwapChain->Present(0, 0); //9. Växla front- och back-buffer
 			}
 		}
-
-		gVertexBuffer->Release();
-
-		gVertexLayout->Release();
-		gVertexShader->Release();
-		gPixelShader->Release();
-
-		gBackbufferRTV->Release();
-		gSwapChain->Release();
-		gDevice->Release();
-		gDeviceContext->Release();
 		DestroyWindow(wndHandle);
 	}
 

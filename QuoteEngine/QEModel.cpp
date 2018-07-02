@@ -19,6 +19,16 @@ ID3D11Buffer * QEModel::getVertexBuffer()
 	return m_VertexBuffer.Get();
 }
 
+UINT QEModel::getSizeInBytes()
+{
+	return m_SizeInBytes;
+}
+
+UINT QEModel::getVertexCount()
+{
+	return m_VertexCount;
+}
+
 HRESULT QEModel::create()
 {
 	struct TriangleVertex
@@ -39,6 +49,9 @@ HRESULT QEModel::create()
 		-0.5f, -0.5f, 0.0f, //v2
 		0.0f, 0.0f, 1.0f	//v2 color
 	};
+
+	m_SizeInBytes = sizeof(TriangleVertex) * 3;
+	m_VertexCount = 3;
 
 	// Describe the Vertex Buffer
 	D3D11_BUFFER_DESC bufferDesc;

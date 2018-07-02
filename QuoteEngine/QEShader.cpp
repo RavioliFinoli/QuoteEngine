@@ -72,6 +72,7 @@ HRESULT QuoteEngine::QEShader::compileFromFile(QuoteEngine::SHADER_TYPE type, LP
 		return result;
 	}
 
+
 	switch (m_Type)
 	{
 	case QuoteEngine::SHADER_TYPE::VERTEX_SHADER:
@@ -81,6 +82,7 @@ HRESULT QuoteEngine::QEShader::compileFromFile(QuoteEngine::SHADER_TYPE type, LP
 			nullptr,
 			m_VertexShader.ReleaseAndGetAddressOf()
 		);
+		pVS.Swap(m_VSBlob);
 		break;
 	case QuoteEngine::SHADER_TYPE::PIXEL_SHADER:
 		result = QERenderingModule::gDevice->CreatePixelShader(
@@ -139,6 +141,11 @@ HRESULT QuoteEngine::QEShader::bindShaderAndResources()
 	return E_NOTIMPL;
 }
 
+ID3DBlob * QuoteEngine::QEShader::getVSBlob()
+{
+	return m_VSBlob.Get();
+}
+
 void QuoteEngine::QEShader::addConstantBuffers(std::vector<std::pair<unsigned int, QEConstantBuffer*>> buffers)
 {
 	//whenever we add buffers, we add the ID3D11Buffer pointers to a vector for easier binding. They are ordered 
@@ -166,6 +173,8 @@ void QuoteEngine::QEShader::addTextures(std::vector<std::pair<unsigned int, QETe
 
 HRESULT QuoteEngine::QEShader::bindResources()
 {
+	if (!m_RawBuffers.size())
+		return E_NOTIMPL;
 	//Bind constant buffers
 	switch (m_Type)
 	{
@@ -211,11 +220,16 @@ HRESULT QuoteEngine::QEShaderProgram::initializeShaders(const std::vector<QEShad
 
 HRESULT QuoteEngine::QEShaderProgram::initializeInputLayout(const D3D11_INPUT_ELEMENT_DESC * inputDesc, const UINT numElements)
 {
-	return QERenderingModule::gDevice->CreateInputLayout(inputDesc, numElements, nullptr, 0, m_InputLayout.ReleaseAndGetAddressOf());
+	return QERenderingModule::gDevice->CreateInputLayout(inputDesc, numElements, m_Shaders[0]->getVSBlob()->GetBufferPointer(), m_Shaders[0]->getVSBlob()->GetBufferSize(), m_InputLayout.ReleaseAndGetAddressOf());
 }
 
 void QuoteEngine::QEShaderProgram::bind()
 {
 	for (auto shader : m_Shaders)
-		shader->bindShaderAndResources();
+	{
+		if (shader)
+			shader->bindShaderAndResources();
+	}
+
+	QERenderingModule::gDeviceContext->IASetInputLayout(m_InputLayout.Get());
 }
