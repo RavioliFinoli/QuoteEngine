@@ -21,8 +21,8 @@ public:
 
 private:
 	std::vector<QEModel> m_Models;
-	std::vector<QuoteEngine::QEShader> m_Shaders;
-	std::vector<QuoteEngine::QEShaderProgram> m_ShaderPrograms;
+	std::vector<QuoteEngine::QEShader*> m_Shaders;
+	std::vector<QuoteEngine::QEShaderProgram*> m_ShaderPrograms;
 
 
 	HRESULT createDirect3DContext(HWND wndHandle);
