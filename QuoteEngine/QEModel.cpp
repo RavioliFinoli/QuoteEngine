@@ -56,6 +56,5 @@ HRESULT QEModel::create()
 	data.pSysMem = triangleVertices;
 
 	// create a Vertex Buffer
-	QERenderingModule::gDevice->CreateBuffer(&bufferDesc, &data, m_VertexBuffer.ReleaseAndGetAddressOf());
-	return E_NOTIMPL;
+	return QERenderingModule::gDevice->CreateBuffer(&bufferDesc, &data, m_VertexBuffer.ReleaseAndGetAddressOf());
 }
