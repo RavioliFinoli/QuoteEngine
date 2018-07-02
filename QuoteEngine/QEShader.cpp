@@ -170,3 +170,16 @@ QuoteEngine::QEShaderProgram::QEShaderProgram()
 QuoteEngine::QEShaderProgram::~QEShaderProgram()
 {
 }
+
+HRESULT QuoteEngine::QEShaderProgram::initializeShaders(std::vector<QEShader*>& shaders)
+{
+	if (shaders.size() != 4)
+		return E_INVALIDARG;
+
+	m_Shaders.resize(4);
+	
+	for (int i = 0; i < 4; i++)
+		m_Shaders[i] = shaders[i];
+
+	return S_OK;
+}

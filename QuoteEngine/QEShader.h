@@ -56,8 +56,9 @@ namespace QuoteEngine
 		QEShaderProgram();
 		~QEShaderProgram();
 
+		HRESULT initializeShaders(std::vector<QEShader*>&);
 	private:
-
+		std::vector<QEShader*> m_Shaders;
 	};
 
 
