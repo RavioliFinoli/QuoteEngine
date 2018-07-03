@@ -103,6 +103,18 @@ void QERenderingModule::createModels()
 
 QERenderingModule::~QERenderingModule()
 {
+	/*
+	*Delete new'd heap assets
+	*/
+
+	for (auto model : m_Models)
+		delete model;
+
+	for (auto shader : m_Shaders)
+		delete shader;
+
+	for (auto shaderProgram : m_ShaderPrograms)
+		delete shaderProgram;
 }
 
 HRESULT QERenderingModule::createDirect3DContext(HWND wndHandle)
@@ -153,6 +165,10 @@ HRESULT QERenderingModule::createDirect3DContext(HWND wndHandle)
 
 void QERenderingModule::createViewport()
 {
+	/*
+	*Hardcoded resolution
+	*/
+
 	D3D11_VIEWPORT vp;
 	vp.Width = (float)640;
 	vp.Height = (float)480;
