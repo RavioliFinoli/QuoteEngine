@@ -9,6 +9,12 @@ Microsoft::WRL::ComPtr<ID3D11RenderTargetView> QERenderingModule::gBackbufferRTV
 
 void QERenderingModule::render()
 {
+	/*
+	*Some of these statements will be moved to QEShaderProgram class, since not
+	*all shader programs will use only one render target and might need several 
+	*passes etc.
+	*/
+
 	// clear the back buffer to a deep blue
 	float clearColor[] = { 0, 0, 0, 1 };
 
@@ -24,13 +30,17 @@ void QERenderingModule::render()
 	//drawModels();
 	for (auto model : m_Models)
 	{
-		ID3D11Buffer* buffer = model->getVertexBuffer();
-		UINT size = sizeof(float) * 6;
+		//get the buffer, stride and offset
+		ID3D11Buffer* buffer = model->getVertexBuffer(); 
+		UINT stride = model->getStrideInBytes();
 		UINT offset = 0;
-		gDeviceContext->IASetVertexBuffers(0, 1, &buffer, &size, &offset);
+
+		//set the buffer and draw model
+		gDeviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
 		gDeviceContext->Draw(model->getVertexCount(), 0);
 	}
 
+	//all models drawn; present.
 	gSwapChain->Present(0, 0);
 }
 
