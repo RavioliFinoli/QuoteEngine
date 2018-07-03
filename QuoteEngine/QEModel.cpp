@@ -37,6 +37,7 @@ HRESULT QEModel::create()
 
 	m_SizeInBytes = sizeof(TriangleVertex) * 3;
 	m_VertexCount = 3;
+	m_StrideInBytes = sizeof(TriangleVertex);
 
 	// Describe the Vertex Buffer
 	D3D11_BUFFER_DESC bufferDesc;
