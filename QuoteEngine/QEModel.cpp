@@ -14,21 +14,6 @@ QEModel::~QEModel()
 {
 }
 
-inline ID3D11Buffer * QEModel::getVertexBuffer()
-{
-	return m_VertexBuffer.Get();
-}
-
-inline UINT QEModel::getSizeInBytes()
-{
-	return m_SizeInBytes;
-}
-
-inline UINT QEModel::getVertexCount()
-{
-	return m_VertexCount;
-}
-
 HRESULT QEModel::create()
 {
 	struct TriangleVertex
