@@ -52,6 +52,10 @@ QERenderingModule::QERenderingModule(HWND WindowHandle)
 
 HRESULT QERenderingModule::compileShadersAndCreateShaderPrograms()
 {
+	/*
+	*Currently hardcoding shaders and shader programs*
+	*/
+
 	HRESULT hr = S_OK;
 	QEShader* vertexShader = new QEShader();
 	hr = vertexShader->compileFromFile(QuoteEngine::SHADER_TYPE::VERTEX_SHADER, L"Vertex.hlsl");

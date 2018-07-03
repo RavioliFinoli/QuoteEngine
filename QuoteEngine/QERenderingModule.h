@@ -23,6 +23,11 @@ public:
 	~QERenderingModule();
 
 private:
+	/*
+	*Vectors for models, shaders and shader programs. 
+	*These will later be replaced by maps.
+	*/
+
 	std::vector<QEModel*> m_Models;
 	std::vector<QuoteEngine::QEShader*> m_Shaders;
 	std::vector<QuoteEngine::QEShaderProgram*> m_ShaderPrograms;
