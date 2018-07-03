@@ -141,7 +141,7 @@ HRESULT QuoteEngine::QEShader::bindShaderAndResources()
 	return E_NOTIMPL;
 }
 
-ID3DBlob * QuoteEngine::QEShader::getVSBlob()
+inline ID3DBlob * QuoteEngine::QEShader::getVSBlob()
 {
 	return m_VSBlob.Get();
 }
