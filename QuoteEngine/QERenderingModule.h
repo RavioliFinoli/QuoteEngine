@@ -38,5 +38,15 @@ namespace QuoteEngine
 		HRESULT createDirect3DContext(HWND wndHandle);
 		void createViewport();
 	};
+
+	class QEGUI
+	{
+	public:
+		QEGUI();
+		~QEGUI();
+
+	private:
+
+	};
 }
 
