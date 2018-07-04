@@ -1,6 +1,7 @@
 #include "QEModel.h"
 #include "QERenderingModule.h"
 
+using QuoteEngine::QERenderingModule;
 
 QEModel::QEModel()
 {

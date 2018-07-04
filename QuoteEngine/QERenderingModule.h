@@ -5,35 +5,38 @@
 #include "QEModel.h"
 #include "QEShader.h"
 
-class QERenderingModule
+namespace QuoteEngine
 {
-public:
-	static Microsoft::WRL::ComPtr<ID3D11Device> gDevice;
-	static Microsoft::WRL::ComPtr<ID3D11DeviceContext> gDeviceContext;
-	static Microsoft::WRL::ComPtr<IDXGISwapChain> gSwapChain;
-	static Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gBackbufferRTV;
-	
-	void render();
+	class QERenderingModule
+	{
+	public:
+		static Microsoft::WRL::ComPtr<ID3D11Device> gDevice;
+		static Microsoft::WRL::ComPtr<ID3D11DeviceContext> gDeviceContext;
+		static Microsoft::WRL::ComPtr<IDXGISwapChain> gSwapChain;
+		static Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gBackbufferRTV;
 
-	QERenderingModule(HWND WindowHandle);
+		void render();
 
-	HRESULT compileShadersAndCreateShaderPrograms();
-	void createModels();
+		QERenderingModule(HWND WindowHandle);
 
-	~QERenderingModule();
+		HRESULT compileShadersAndCreateShaderPrograms();
+		void createModels();
 
-private:
-	/*
-	*Vectors for models, shaders and shader programs. 
-	*These will later be replaced by maps.
-	*/
+		~QERenderingModule();
 
-	std::vector<QEModel*> m_Models;
-	std::vector<QuoteEngine::QEShader*> m_Shaders;
-	std::vector<QuoteEngine::QEShaderProgram*> m_ShaderPrograms;
+	private:
+		/*
+		*Vectors for models, shaders and shader programs.
+		*These will later be replaced by maps.
+		*/
+
+		std::vector<QEModel*> m_Models;
+		std::vector<QuoteEngine::QEShader*> m_Shaders;
+		std::vector<QuoteEngine::QEShaderProgram*> m_ShaderPrograms;
 
 
-	HRESULT createDirect3DContext(HWND wndHandle);
-	void createViewport();
-};
+		HRESULT createDirect3DContext(HWND wndHandle);
+		void createViewport();
+	};
+}
 

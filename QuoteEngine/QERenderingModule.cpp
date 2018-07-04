@@ -2,12 +2,12 @@
 using QuoteEngine::QEShader;
 using QuoteEngine::QEShaderProgram;
 
-Microsoft::WRL::ComPtr<ID3D11Device> QERenderingModule::gDevice(nullptr);
-Microsoft::WRL::ComPtr<ID3D11DeviceContext> QERenderingModule::gDeviceContext(nullptr);
-Microsoft::WRL::ComPtr<IDXGISwapChain> QERenderingModule::gSwapChain(nullptr);
-Microsoft::WRL::ComPtr<ID3D11RenderTargetView> QERenderingModule::gBackbufferRTV(nullptr);
+Microsoft::WRL::ComPtr<ID3D11Device> QuoteEngine::QERenderingModule::gDevice(nullptr);
+Microsoft::WRL::ComPtr<ID3D11DeviceContext> QuoteEngine::QERenderingModule::gDeviceContext(nullptr);
+Microsoft::WRL::ComPtr<IDXGISwapChain> QuoteEngine::QERenderingModule::gSwapChain(nullptr);
+Microsoft::WRL::ComPtr<ID3D11RenderTargetView> QuoteEngine::QERenderingModule::gBackbufferRTV(nullptr);
 
-void QERenderingModule::render()
+void QuoteEngine::QERenderingModule::render()
 {
 	/*
 	*Some of these statements will be moved to QEShaderProgram class, since not
@@ -44,13 +44,13 @@ void QERenderingModule::render()
 	gSwapChain->Present(0, 0);
 }
 
-QERenderingModule::QERenderingModule(HWND WindowHandle)
+QuoteEngine::QERenderingModule::QERenderingModule(HWND WindowHandle)
 {
 	createDirect3DContext(WindowHandle);
 	createViewport();
 }
 
-HRESULT QERenderingModule::compileShadersAndCreateShaderPrograms()
+HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 {
 	/*
 	*Currently hardcoding shaders and shader programs*
@@ -94,14 +94,14 @@ HRESULT QERenderingModule::compileShadersAndCreateShaderPrograms()
 	return hr;
 }
 
-void QERenderingModule::createModels()
+void QuoteEngine::QERenderingModule::createModels()
 {
 	QEModel* triangle = new QEModel();
 	m_Models.push_back(triangle);
 }
 
 
-QERenderingModule::~QERenderingModule()
+QuoteEngine::QERenderingModule::~QERenderingModule()
 {
 	/*
 	*Delete new'd heap assets
@@ -117,7 +117,7 @@ QERenderingModule::~QERenderingModule()
 		delete shaderProgram;
 }
 
-HRESULT QERenderingModule::createDirect3DContext(HWND wndHandle)
+HRESULT QuoteEngine::QERenderingModule::createDirect3DContext(HWND wndHandle)
 {
 	// create a struct to hold information about the swap chain
 	DXGI_SWAP_CHAIN_DESC scd;
@@ -163,7 +163,7 @@ HRESULT QERenderingModule::createDirect3DContext(HWND wndHandle)
 	return hr;
 }
 
-void QERenderingModule::createViewport()
+void QuoteEngine::QERenderingModule::createViewport()
 {
 	/*
 	*Hardcoded resolution
