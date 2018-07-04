@@ -146,7 +146,7 @@ inline ID3DBlob * QuoteEngine::QEShader::getVSBlob()
 	return m_VSBlob.Get();
 }
 
-void QuoteEngine::QEShader::addConstantBuffers(std::vector<std::pair<unsigned int, QEConstantBuffer*>> buffers)
+void QuoteEngine::QEShader::addConstantBuffers(std::vector<QEConstantBuffer*> buffers)
 {
 	//whenever we add buffers, we add the ID3D11Buffer pointers to a vector for easier binding. They are ordered 
 	//by their slot in the shader. Gaps in this vector is not allowed, thus the shader should not have gaps in 
@@ -154,18 +154,18 @@ void QuoteEngine::QEShader::addConstantBuffers(std::vector<std::pair<unsigned in
 	m_ConstantBuffers.clear();
 	m_ConstantBuffers.resize(buffers.size());
 
-	for (auto pair : buffers)
+	for (auto buffer : buffers)
 	{
-		m_ConstantBuffers.push_back(pair);
+		m_ConstantBuffers.push_back(buffer);
 
-		m_RawBuffers[pair.first] = pair.second->get();
+		m_RawBuffers.push_back(buffer->getBuffer());
 	}
 
 	//Check integrity of m_RawBuffers
 	//TODO
 }
 
-void QuoteEngine::QEShader::addTextures(std::vector<std::pair<unsigned int, QETexture*>> textures)
+void QuoteEngine::QEShader::addTextures(std::vector<QETexture*> textures)
 {
 	for (auto pair : textures)
 		m_Textures.push_back(pair);

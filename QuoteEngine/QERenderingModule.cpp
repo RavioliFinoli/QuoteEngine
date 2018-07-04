@@ -11,6 +11,7 @@ Microsoft::WRL::ComPtr<ID3D11Device> QuoteEngine::QERenderingModule::gDevice(nul
 Microsoft::WRL::ComPtr<ID3D11DeviceContext> QuoteEngine::QERenderingModule::gDeviceContext(nullptr);
 Microsoft::WRL::ComPtr<IDXGISwapChain> QuoteEngine::QERenderingModule::gSwapChain(nullptr);
 Microsoft::WRL::ComPtr<ID3D11RenderTargetView> QuoteEngine::QERenderingModule::gBackbufferRTV(nullptr);
+QuoteEngine::Camera QuoteEngine::QERenderingModule::gCamera;
 
 void QuoteEngine::QERenderingModule::render()
 {
@@ -46,7 +47,7 @@ void QuoteEngine::QERenderingModule::render()
 		gDeviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
 		gDeviceContext->Draw(model->getVertexCount(), 0);
 	}
-	m_gui.updateAndDraw();
+	//m_gui.updateAndDraw();
 
 	//all models drawn; present.
 	gSwapChain->Present(1, 0);
@@ -64,15 +65,33 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 	*Currently hardcoding shaders and shader programs*
 	*/
 
+	//Constant buffers
+
+	float arr[3] = { 1.0f, 0.0f, 0.0f };
+	QEConstantBuffer* FragmentTest = new QEConstantBuffer(sizeof(float)*3, &arr, 0, QuoteEngine::SHADER_TYPE::PIXEL_SHADER);
+
+	QuoteEngine::CB_PerModel perModel = {};
+	DirectX::XMMATRIX WVP;
+	DirectX::XMMATRIX ViewMatrix = QERenderingModule::gCamera.getViewMatrix();
+	DirectX::XMMATRIX ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(1.57, (float)640/(float)480, 0.1f, 100.f);
+
+	WVP = DirectX::XMMatrixMultiply(ViewMatrix, ProjectionMatrix);
+	DirectX::XMStoreFloat4x4(&perModel._WVP, WVP);
+
+	QEConstantBuffer* VSTest = new QEConstantBuffer(sizeof(perModel), &perModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
+
+
 	HRESULT hr = S_OK;
 	QEShader* vertexShader = new QEShader();
 	hr = vertexShader->compileFromFile(QuoteEngine::SHADER_TYPE::VERTEX_SHADER, L"Vertex.hlsl");
+	vertexShader->addConstantBuffers({ VSTest });
 
 	QEShader* pixelShader = new QEShader();
 	hr = pixelShader->compileFromFile(QuoteEngine::SHADER_TYPE::PIXEL_SHADER, L"Fragment.hlsl");
 
 	QEShaderProgram* basicProgram = new QEShaderProgram();
 	hr = basicProgram->initializeShaders({ vertexShader, pixelShader, nullptr, nullptr });
+
 	
 	//Create layout
 	D3D11_INPUT_ELEMENT_DESC inputDesc[] = {
@@ -231,9 +250,18 @@ bool QuoteEngine::QEGUI::init()
 	return false;
 }
 
-QuoteEngine::Camera::Camera(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector)
+QuoteEngine::Camera::Camera()
+{
+	update({ 0.0f, 0.0f, -10.0f, 1.0f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
+}
+
+QuoteEngine::Camera::Camera(DirectX::XMVECTOR EyePosition = { 0.0f, 0.0f, -1.0f, 1.0f }, DirectX::XMVECTOR Focus = { 0.0f, 0.0f, 1.0f, 1.0f }, DirectX::XMVECTOR UpVector = {0.0f, 1.0f, 0.0f, 0.0f})
 {
 	update(EyePosition, Focus, UpVector);
+}
+
+QuoteEngine::Camera::~Camera()
+{
 }
 
 DirectX::XMMATRIX QuoteEngine::Camera::getViewMatrix()

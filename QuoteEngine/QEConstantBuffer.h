@@ -1,16 +1,20 @@
 #pragma once
 #include <d3d11.h>
 #include <wrl.h>
+#include "QuoteEngineCommon.h"
 
 namespace QuoteEngine
 {
 	class QEConstantBuffer
 	{
 	public:
-		QEConstantBuffer(size_t bufferSize, void* initialData);
+		QEConstantBuffer(size_t bufferSize, void * initialData, UINT shaderRegister, QuoteEngine::SHADER_TYPE shaderType);
 		~QEConstantBuffer();
-	
-		ID3D11Buffer* get();
+		
+
+		ID3D11Buffer* getBuffer();
+		UINT getRegister();
+		QuoteEngine::SHADER_TYPE getShaderType();
 	private:
 		//The ID3D11Buffer pointer for this constant buffer
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_Buffer;
@@ -25,5 +29,11 @@ namespace QuoteEngine
 
 		//Creates the buffer
 		HRESULT create();
+
+		//Register to be bound to
+		UINT m_ShaderRegister;
+
+		//Type of shader to be bound to
+		QuoteEngine::SHADER_TYPE m_ShaderType;
 	};
 }

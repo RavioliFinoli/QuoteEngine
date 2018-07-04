@@ -12,12 +12,13 @@ namespace QuoteEngine
 	class Camera
 	{
 	public:
-		Camera(DirectX::XMVECTOR EyePosition = {0.f, 0.f, 0.f, 1.0f}, DirectX::XMVECTOR Focus = { 0.f, 0.f, 1.f, 1.f }, DirectX::XMVECTOR UpVector = { 0.f, 1.f, 0.f, 0.f });
+		Camera();
+		Camera(DirectX::XMVECTOR, DirectX::XMVECTOR, DirectX::XMVECTOR);
 		~Camera();
 
 		DirectX::XMMATRIX getViewMatrix();
 
-		void update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector = {0.f, 1.f, 0.f, 0.f});
+		void update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector);
 
 	private:
 		DirectX::XMMATRIX m_ViewMatrix;
@@ -41,7 +42,7 @@ namespace QuoteEngine
 		static Microsoft::WRL::ComPtr<ID3D11DeviceContext> gDeviceContext;
 		static Microsoft::WRL::ComPtr<IDXGISwapChain> gSwapChain;
 		static Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gBackbufferRTV;
-
+		static QuoteEngine::Camera gCamera;
 
 		void render();
 
@@ -49,7 +50,7 @@ namespace QuoteEngine
 
 		HRESULT compileShadersAndCreateShaderPrograms();
 		void createModels();
-
+		
 		~QERenderingModule();
 
 	private:
