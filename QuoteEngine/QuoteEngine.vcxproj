@@ -165,6 +165,11 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ImGUI\imgui.cpp" />
+    <ClCompile Include="ImGUI\imgui_demo.cpp" />
+    <ClCompile Include="ImGUI\imgui_draw.cpp" />
+    <ClCompile Include="ImGUI\imgui_impl_dx11.cpp" />
+    <ClCompile Include="ImGUI\imgui_impl_win32.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="QEBuffer.cpp" />
     <ClCompile Include="QEConstantBuffer.cpp" />
@@ -173,11 +178,23 @@
     <ClCompile Include="QEShader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ImGUI\imconfig.h" />
+    <ClInclude Include="ImGUI\imgui.h" />
+    <ClInclude Include="ImGUI\imgui_impl_dx11.h" />
+    <ClInclude Include="ImGUI\imgui_impl_win32.h" />
+    <ClInclude Include="ImGUI\imgui_internal.h" />
+    <ClInclude Include="ImGUI\stb_rect_pack.h" />
+    <ClInclude Include="ImGUI\stb_textedit.h" />
+    <ClInclude Include="ImGUI\stb_truetype.h" />
     <ClInclude Include="QEBuffer.h" />
     <ClInclude Include="QEConstantBuffer.h" />
     <ClInclude Include="QEModel.h" />
     <ClInclude Include="QERenderingModule.h" />
     <ClInclude Include="QEShader.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="QuoteEngine.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
