@@ -27,7 +27,6 @@ void QuoteEngine::QERenderingModule::render()
 	// use DeviceContext to talk to the API
 	gDeviceContext->ClearRenderTargetView(gBackbufferRTV.Get(), clearColor);
 	
-	m_gui.updateAndDraw();
 	
 	// specify the topology to use when drawing
 	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -47,9 +46,10 @@ void QuoteEngine::QERenderingModule::render()
 		gDeviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
 		gDeviceContext->Draw(model->getVertexCount(), 0);
 	}
+	m_gui.updateAndDraw();
 
 	//all models drawn; present.
-	gSwapChain->Present(0, 0);
+	gSwapChain->Present(1, 0);
 }
 
 QuoteEngine::QERenderingModule::QERenderingModule(HWND WindowHandle)
