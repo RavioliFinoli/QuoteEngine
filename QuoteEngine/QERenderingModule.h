@@ -7,6 +7,18 @@
 
 namespace QuoteEngine
 {
+
+	class QEGUI
+	{
+	public:
+		QEGUI();
+		~QEGUI();
+
+		void updateAndDraw();
+	private:
+		bool init();
+	};
+
 	class QERenderingModule
 	{
 	public:
@@ -14,6 +26,7 @@ namespace QuoteEngine
 		static Microsoft::WRL::ComPtr<ID3D11DeviceContext> gDeviceContext;
 		static Microsoft::WRL::ComPtr<IDXGISwapChain> gSwapChain;
 		static Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gBackbufferRTV;
+
 
 		void render();
 
@@ -29,6 +42,7 @@ namespace QuoteEngine
 		*Vectors for models, shaders and shader programs.
 		*These will later be replaced by maps.
 		*/
+		QEGUI m_gui;
 
 		std::vector<QEModel*> m_Models;
 		std::vector<QuoteEngine::QEShader*> m_Shaders;
@@ -39,14 +53,5 @@ namespace QuoteEngine
 		void createViewport();
 	};
 
-	class QEGUI
-	{
-	public:
-		QEGUI();
-		~QEGUI();
-
-	private:
-
-	};
 }
 

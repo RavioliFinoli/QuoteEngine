@@ -1,4 +1,9 @@
 #include "QERenderingModule.h"
+
+#include "ImGUI/imgui.h"
+#include "ImGUI/imgui_impl_dx11.h"
+#include "ImGUI/imgui_impl_win32.h"
+
 using QuoteEngine::QEShader;
 using QuoteEngine::QEShaderProgram;
 
@@ -18,9 +23,12 @@ void QuoteEngine::QERenderingModule::render()
 	// clear the back buffer to a deep blue
 	float clearColor[] = { 0, 0, 0, 1 };
 
+
 	// use DeviceContext to talk to the API
 	gDeviceContext->ClearRenderTargetView(gBackbufferRTV.Get(), clearColor);
-
+	
+	m_gui.updateAndDraw();
+	
 	// specify the topology to use when drawing
 	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -177,4 +185,48 @@ void QuoteEngine::QERenderingModule::createViewport()
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
 	gDeviceContext->RSSetViewports(1, &vp);
+}
+
+QuoteEngine::QEGUI::QEGUI()
+{
+	init();
+}
+
+QuoteEngine::QEGUI::~QEGUI()
+{
+}
+
+void QuoteEngine::QEGUI::updateAndDraw()
+{
+	// Start the ImGui frame
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	// 1. Show a simple window.
+	// Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets automatically appears in a window called "Debug".
+	{
+		static float f = 0.0f;
+		static int counter = 0;
+		ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
+		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
+
+		if (ImGui::Button("Button"))                            // Buttons return true when clicked (NB: most widgets return true when edited/activated)
+			counter++;
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", counter);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+}
+
+bool QuoteEngine::QEGUI::init()
+{
+	ImGui::StyleColorsDark();
+
+	return false;
 }

@@ -7,6 +7,9 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include "QERenderingModule.h"
+#include "ImGUI/imgui.h"
+#include "ImGUI/imgui_impl_dx11.h"
+#include "ImGUI/imgui_impl_win32.h"
 
 using QuoteEngine::QERenderingModule;
 
@@ -23,11 +26,25 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	MSG msg = { 0 };
 	HWND wndHandle = InitWindow(hInstance); //1. Skapa fönster
 	
+
+
+	// Setup Dear ImGui binding
+	IMGUI_CHECKVERSION();
+	ImGuiContext* imguiContext = ImGui::CreateContext();
+	ImGui::SetCurrentContext(imguiContext);
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+
+
 	if (wndHandle)
 	{
 		QERenderingModule renderingModule(wndHandle);
 		renderingModule.compileShadersAndCreateShaderPrograms();
 		renderingModule.createModels();
+
+		//Init imgui
+		ImGui_ImplWin32_Init(wndHandle);
+		ImGui_ImplDX11_Init(QERenderingModule::gDevice.Get(), QERenderingModule::gDeviceContext.Get());
 
 		ShowWindow(wndHandle, nCmdShow);
 
