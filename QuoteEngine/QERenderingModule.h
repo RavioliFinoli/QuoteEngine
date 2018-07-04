@@ -1,5 +1,7 @@
 #pragma once
 #include <d3d11.h>
+#include <DirectXMath.h>
+
 #include <wrl.h>
 #include <vector>
 #include "QEModel.h"
@@ -7,6 +9,19 @@
 
 namespace QuoteEngine
 {
+	class Camera
+	{
+	public:
+		Camera(DirectX::XMVECTOR EyePosition = {0.f, 0.f, 0.f, 1.0f}, DirectX::XMVECTOR Focus = { 0.f, 0.f, 1.f, 1.f }, DirectX::XMVECTOR UpVector = { 0.f, 1.f, 0.f, 0.f });
+		~Camera();
+
+		DirectX::XMMATRIX getViewMatrix();
+
+		void update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector = {0.f, 1.f, 0.f, 0.f});
+
+	private:
+		DirectX::XMMATRIX m_ViewMatrix;
+	};
 
 	class QEGUI
 	{

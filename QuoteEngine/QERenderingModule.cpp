@@ -230,3 +230,18 @@ bool QuoteEngine::QEGUI::init()
 
 	return false;
 }
+
+QuoteEngine::Camera::Camera(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector)
+{
+	update(EyePosition, Focus, UpVector);
+}
+
+DirectX::XMMATRIX QuoteEngine::Camera::getViewMatrix()
+{
+	return m_ViewMatrix;
+}
+
+void QuoteEngine::Camera::update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector = { 0, 1, 0, 0 })
+{
+	m_ViewMatrix = DirectX::XMMatrixLookAtLH(EyePosition, Focus, UpVector);
+}
