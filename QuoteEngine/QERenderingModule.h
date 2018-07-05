@@ -42,6 +42,7 @@ namespace QuoteEngine
 		static Microsoft::WRL::ComPtr<ID3D11DeviceContext> gDeviceContext;
 		static Microsoft::WRL::ComPtr<IDXGISwapChain> gSwapChain;
 		static Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gBackbufferRTV;
+		static Microsoft::WRL::ComPtr<ID3D11DepthStencilView> gDepthStencilView;
 		static QuoteEngine::Camera gCamera;
 
 		void render();
@@ -66,6 +67,7 @@ namespace QuoteEngine
 
 
 		HRESULT createDirect3DContext(HWND wndHandle);
+		HRESULT createDepthStencilView();
 		void createViewport();
 	};
 
