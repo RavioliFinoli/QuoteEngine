@@ -22,7 +22,7 @@ VS_OUT VS_main(VS_IN input)
 {
 	VS_OUT output = (VS_OUT)0;
 
-	output.Pos = mul(WVP, float4(input.Pos, 1.0f));
+	output.Pos = mul(float4(input.Pos, 1.0f), WVP);
 	//output.Pos = float4(input.Pos, 1.0f);
 	output.Color = input.Color;
 
