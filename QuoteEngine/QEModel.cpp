@@ -26,13 +26,13 @@ HRESULT QEModel::create()
 	// Array of Structs (AoS)
 	TriangleVertex triangleVertices[3] =
 	{
-		0.0f, 0.5f, 3.1f,	//v0 pos
+		0.0f, 0.5f, 0.0f,	//v0 pos
 		1.0f, 0.0f, 0.0f,	//v0 color
 
-		0.5f, -0.5f, 3.1f,	//v1
+		0.5f, -0.5f, 0.0f,	//v1
 		0.0f, 1.0f, 0.0f,	//v1 color
 
-		-0.5f, -0.5f, 3.1f, //v2
+		-0.5f, -0.5f, 0.0f, //v2
 		0.0f, 0.0f, 1.0f	//v2 color
 	};
 
