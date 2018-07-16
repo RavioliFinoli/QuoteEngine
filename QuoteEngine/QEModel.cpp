@@ -6,7 +6,7 @@ using QuoteEngine::QERenderingModule;
 QEModel::QEModel()
 {
 	m_VertexBuffer.Reset(); //clean ComPtr
-
+	m_WorldMatrix = DirectX::XMMatrixIdentity();
 	create();
 }
 

@@ -22,6 +22,20 @@ QuoteEngine::QEConstantBuffer::~QEConstantBuffer()
 	delete[] m_Data;
 }
 
+void QuoteEngine::QEConstantBuffer::update(PVOID data)
+{
+	//HRESULT hr = S_OK;
+	//D3D11_MAPPED_SUBRESOURCE subresource = {};
+	//subresource.pData = data;
+	//hr = QuoteEngine::QERenderingModule::gDeviceContext->Map(
+	//	m_Buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource
+	//);
+
+	//QuoteEngine::QERenderingModule::gDeviceContext->Unmap(m_Buffer.Get(), 0);
+
+	QuoteEngine::QERenderingModule::gDeviceContext->UpdateSubresource(m_Buffer.Get(), 0, NULL, data, 0, 0);
+}
+
 ID3D11Buffer * QuoteEngine::QEConstantBuffer::getBuffer()
 {
 	return m_Buffer.Get();
@@ -40,12 +54,13 @@ QuoteEngine::SHADER_TYPE QuoteEngine::QEConstantBuffer::getShaderType()
 HRESULT QuoteEngine::QEConstantBuffer::create()
 {
 	D3D11_BUFFER_DESC cbDesc = {};
-	cbDesc.ByteWidth = m_BufferSize + 16 - (m_BufferSize % 16); //this is incorrect but shouldnt matter..
-	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cbDesc.ByteWidth = (m_BufferSize + 16 - 1) & -16;
+	cbDesc.Usage = D3D11_USAGE_DEFAULT;
 	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.CPUAccessFlags = 0;
 	cbDesc.MiscFlags = 0;
 	cbDesc.StructureByteStride = 0;
+	
 
 	D3D11_SUBRESOURCE_DATA InitData;
 	InitData.pSysMem = m_Data;

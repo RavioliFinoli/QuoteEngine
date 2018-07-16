@@ -1,5 +1,6 @@
 #pragma once
 #include <d3d11.h>
+#include <DirectXMath.h>
 #include <wrl.h> //ComPtr
 
 class QEModel
@@ -11,11 +12,15 @@ public:
 	UINT getSizeInBytes();
 	UINT getStrideInBytes();
 	UINT getVertexCount();
+
+	DirectX::XMMATRIX getWorldMatrix();
+	void setWorldMatrix(DirectX::XMMATRIX);
 private:
 
 	UINT m_SizeInBytes = 0;
 	UINT m_VertexCount = 0;
 	UINT m_StrideInBytes = 0;
+	DirectX::XMMATRIX m_WorldMatrix;
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_VertexBuffer;
 
@@ -40,4 +45,14 @@ inline UINT QEModel::getSizeInBytes()
 inline UINT QEModel::getVertexCount()
 {
 	return m_VertexCount;
+}
+
+inline DirectX::XMMATRIX QEModel::getWorldMatrix()
+{
+	return m_WorldMatrix;
+}
+
+inline void QEModel::setWorldMatrix(DirectX::XMMATRIX matrix)
+{
+	m_WorldMatrix = matrix;
 }

@@ -11,7 +11,7 @@ namespace QuoteEngine
 		QEConstantBuffer(size_t bufferSize, void * initialData, UINT shaderRegister, QuoteEngine::SHADER_TYPE shaderType);
 		~QEConstantBuffer();
 		
-
+		void update(PVOID data);
 		ID3D11Buffer* getBuffer();
 		UINT getRegister();
 		QuoteEngine::SHADER_TYPE getShaderType();

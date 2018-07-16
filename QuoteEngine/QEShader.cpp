@@ -1,6 +1,7 @@
 #include "QEShader.h"
 #include "QERenderingModule.h"
 #include <d3dcompiler.h>
+#
 using Microsoft::WRL::ComPtr;
 
 QuoteEngine::QEShader::QEShader()
@@ -146,19 +147,23 @@ inline ID3DBlob * QuoteEngine::QEShader::getVSBlob()
 	return m_VSBlob.Get();
 }
 
-void QuoteEngine::QEShader::addConstantBuffers(std::vector<QEConstantBuffer*> buffers)
+std::unordered_map<std::string, QuoteEngine::QEConstantBuffer*>* QuoteEngine::QEShader::getBuffers()
+{
+	return &m_ConstantBuffers;
+}
+
+void QuoteEngine::QEShader::addConstantBuffers(std::unordered_map<std::string, QEConstantBuffer*>& buffers)
 {
 	//whenever we add buffers, we add the ID3D11Buffer pointers to a vector for easier binding. They are ordered 
 	//by their slot in the shader. Gaps in this vector is not allowed, thus the shader should not have gaps in 
 	//their occupied cbuffer slots.
 	m_ConstantBuffers.clear();
-	m_ConstantBuffers.resize(buffers.size());
 
 	for (auto buffer : buffers)
 	{
-		m_ConstantBuffers.push_back(buffer);
+		m_ConstantBuffers.insert(buffer);
 
-		m_RawBuffers.push_back(buffer->getBuffer());
+		m_RawBuffers.push_back(buffer.second->getBuffer());
 	}
 
 	//Check integrity of m_RawBuffers
@@ -169,6 +174,11 @@ void QuoteEngine::QEShader::addTextures(std::vector<QETexture*> textures)
 {
 	for (auto pair : textures)
 		m_Textures.push_back(pair);
+}
+
+void QuoteEngine::QEShader::updateBuffer(std::string key, PVOID value)
+{
+	m_ConstantBuffers.at(key)->update(value);
 }
 
 HRESULT QuoteEngine::QEShader::bindResources()
@@ -215,12 +225,31 @@ HRESULT QuoteEngine::QEShaderProgram::initializeShaders(const std::vector<QEShad
 	for (int i = 0; i < 4; i++)
 		m_Shaders[i] = shaders[i];
 
+	//Fetch consantbuffers from shaders
+	for (auto shader : m_Shaders)
+	{
+		if (shader)
+		{
+			std::unordered_map<std::string, QEConstantBuffer*>* pBufferMap = shader->getBuffers();
+			for (auto buffer : *pBufferMap)
+			{
+				m_ConstantBuffers.insert({ buffer.first, buffer.second });
+			}
+		}
+	}
+
 	return S_OK;
 }
 
 HRESULT QuoteEngine::QEShaderProgram::initializeInputLayout(const D3D11_INPUT_ELEMENT_DESC * inputDesc, const UINT numElements)
 {
 	return QERenderingModule::gDevice->CreateInputLayout(inputDesc, numElements, m_Shaders[0]->getVSBlob()->GetBufferPointer(), m_Shaders[0]->getVSBlob()->GetBufferSize(), m_InputLayout.ReleaseAndGetAddressOf());
+}
+
+HRESULT QuoteEngine::QEShaderProgram::updateBuffer(std::string key, PVOID data)
+{
+	m_ConstantBuffers.at(key)->update(data);
+	return E_NOTIMPL;
 }
 
 void QuoteEngine::QEShaderProgram::bind()

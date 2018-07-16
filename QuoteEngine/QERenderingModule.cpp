@@ -3,6 +3,8 @@
 #include "ImGUI/imgui.h"
 #include "ImGUI/imgui_impl_dx11.h"
 #include "ImGUI/imgui_impl_win32.h"
+#include <unordered_map>
+#include <d3d11_1.h>
 
 using QuoteEngine::QEShader;
 using QuoteEngine::QEShaderProgram;
@@ -29,8 +31,8 @@ void QuoteEngine::QERenderingModule::render()
 
 	// use DeviceContext to talk to the API
 	gDeviceContext->ClearRenderTargetView(gBackbufferRTV.Get(), clearColor);
-	
-	
+	gDeviceContext->ClearDepthStencilView(gDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0.0);
+
 	// specify the topology to use when drawing
 	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -40,6 +42,19 @@ void QuoteEngine::QERenderingModule::render()
 	//drawModels();
 	for (auto model : m_Models)
 	{
+		{
+			//Update cbuffer
+			QuoteEngine::CB_PerModel perModel = {};
+			auto WVP = model->getWorldMatrix();
+			DirectX::XMMATRIX ViewMatrix = QERenderingModule::gCamera.getViewMatrix();
+			DirectX::XMMATRIX ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(1.57, (float)640 / (float)480, 0.1f, 100.f);
+
+			WVP = DirectX::XMMatrixMultiply(WVP, DirectX::XMMatrixMultiply(ViewMatrix, ProjectionMatrix));
+			DirectX::XMStoreFloat4x4(&perModel._WVP, WVP);
+			
+			m_ShaderPrograms[0]->updateBuffer("WVP", &perModel);
+		}
+
 		//get the buffer, stride and offset
 		ID3D11Buffer* buffer = model->getVertexBuffer(); 
 		UINT stride = model->getStrideInBytes();
@@ -70,8 +85,8 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 
 	//Constant buffers
 
-	float arr[3] = { 1.0f, 0.0f, 0.0f };
-	QEConstantBuffer* FragmentTest = new QEConstantBuffer(sizeof(float)*3, &arr, 0, QuoteEngine::SHADER_TYPE::PIXEL_SHADER);
+	//float arr[3] = { 1.0f, 0.0f, 0.0f };
+	//QEConstantBuffer* FragmentTest = new QEConstantBuffer(sizeof(float)*3, &arr, 0, QuoteEngine::SHADER_TYPE::PIXEL_SHADER);
 
 	QuoteEngine::CB_PerModel perModel = {};
 	DirectX::XMMATRIX WVP;
@@ -87,7 +102,9 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 	HRESULT hr = S_OK;
 	QEShader* vertexShader = new QEShader();
 	hr = vertexShader->compileFromFile(QuoteEngine::SHADER_TYPE::VERTEX_SHADER, L"Vertex.hlsl");
-	vertexShader->addConstantBuffers({ VSTest });
+	std::unordered_map<std::string, QEConstantBuffer*> VSBuffers;
+	VSBuffers.insert({ "WVP", VSTest });
+	vertexShader->addConstantBuffers(VSBuffers);
 
 	QEShader* pixelShader = new QEShader();
 	hr = pixelShader->compileFromFile(QuoteEngine::SHADER_TYPE::PIXEL_SHADER, L"Fragment.hlsl");
@@ -129,10 +146,10 @@ void QuoteEngine::QERenderingModule::createModels()
 	QEModel* triangle = new QEModel();
 	m_Models.push_back(triangle);
 
-	QEModel* triangle = new QEModel();
-	m_Models.push_back(triangle);
+	QEModel* secondTriangle = new QEModel();
+	secondTriangle->setWorldMatrix(DirectX::XMMatrixTranslation(0.5, 0.0, 0.5));
+	m_Models.push_back(secondTriangle);
 }
-
 
 QuoteEngine::QERenderingModule::~QERenderingModule()
 {
@@ -163,7 +180,7 @@ HRESULT QuoteEngine::QERenderingModule::createDirect3DContext(HWND wndHandle)
 	scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;     // use 32-bit color
 	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
 	scd.OutputWindow = wndHandle;                           // the window to be used
-	scd.SampleDesc.Count = 4;                               // how many multisamples
+	scd.SampleDesc.Count = 1;                               // how many multisamples
 	scd.Windowed = TRUE;                                    // windowed/full-screen mode
 
 															// create a device, device context and swap chain using the information in the scd struct
@@ -195,6 +212,76 @@ HRESULT QuoteEngine::QERenderingModule::createDirect3DContext(HWND wndHandle)
 
 HRESULT QuoteEngine::QERenderingModule::createDepthStencilView()
 {
+	//Describe our Depth/Stencil Buffer
+
+	ID3D11Texture2D* pDepthStencil = NULL;
+
+	D3D11_TEXTURE2D_DESC depthStencilDesc;
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+
+	depthStencilDesc.Width = 640;
+	depthStencilDesc.Height = 480;
+	depthStencilDesc.MipLevels = 1;
+	depthStencilDesc.ArraySize = 1;
+	depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilDesc.SampleDesc.Count = 1;
+	depthStencilDesc.SampleDesc.Quality = 0;
+	depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
+	depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	depthStencilDesc.CPUAccessFlags = 0;
+	depthStencilDesc.MiscFlags = 0;
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+	ZeroMemory(&descDSV, sizeof(descDSV));
+
+	descDSV.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	descDSV.Texture2D.MipSlice = 0;
+
+
+	HRESULT dHR = gDevice->CreateTexture2D(&depthStencilDesc, NULL, &pDepthStencil);
+
+	HRESULT dHR2 = gDevice->CreateDepthStencilView(pDepthStencil, &descDSV, gDepthStencilView.ReleaseAndGetAddressOf());
+	//gDeviceContext->OMSetRenderTargets(1, &gBackbufferRTV, depthStencilView);
+
+	D3D11_DEPTH_STENCIL_DESC dsDesc;
+	ZeroMemory(&dsDesc, sizeof(dsDesc));
+
+	// Depth test parameters
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+	// Stencil test parameters
+	dsDesc.StencilEnable = true;
+	dsDesc.StencilReadMask = 0xFF;
+	dsDesc.StencilWriteMask = 0xFF;
+
+	// Stencil operations if pixel is front-facing
+	dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+	dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	// Stencil operations if pixel is back-facing
+	dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+	dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	// Create depth stencil state
+	ID3D11DepthStencilState*   depthStencilState = nullptr;
+	dHR = gDevice->CreateDepthStencilState(&dsDesc, &depthStencilState);
+	gDeviceContext->OMSetDepthStencilState(depthStencilState, 1);
+
+
+	// Bind the depth stencil view
+	gDeviceContext->OMSetRenderTargets(1,          // One rendertarget view
+		gBackbufferRTV.GetAddressOf(),  // Render target view, created earlier
+		gDepthStencilView.Get());     // Depth stencil view for the render target
+
+	return dHR;
+	/*
 	assert(gDevice != nullptr);
 
 	//Hardcoding resolution
@@ -259,7 +346,7 @@ HRESULT QuoteEngine::QERenderingModule::createDepthStencilView()
 		gBackbufferRTV.GetAddressOf(),      // Render target view, created earlier
 		gDepthStencilView.Get());     // Depth stencil view for the render target
 
-	return hr;
+	return hr;*/
 }
 
 void QuoteEngine::QERenderingModule::createViewport()
@@ -324,7 +411,7 @@ bool QuoteEngine::QEGUI::init()
 
 QuoteEngine::Camera::Camera()
 {
-	update({ 0.0f, 5.0f, -2.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
+	update({ 0.0, 0.0f, -2.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
 }
 
 QuoteEngine::Camera::Camera(DirectX::XMVECTOR EyePosition = { 0.0f, 0.0f, -1.0f, 1.0f }, DirectX::XMVECTOR Focus = { 0.0f, 0.0f, 1.0f, 1.0f }, DirectX::XMVECTOR UpVector = {0.0f, 1.0f, 0.0f, 0.0f})
