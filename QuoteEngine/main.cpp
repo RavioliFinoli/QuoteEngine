@@ -2,6 +2,12 @@
 // BTH - Stefan Petersson 2014.
 //	   - modified by FLL
 //--------------------------------------------------------------------------------------
+
+//Mem leak identification
+#define _CRTDBG_MAP_ALLOC  
+#include <stdlib.h>  
+#include <crtdbg.h>  
+
 #include <windows.h>
 
 #include <d3d11.h>
@@ -10,6 +16,9 @@
 #include "ImGUI/imgui.h"
 #include "ImGUI/imgui_impl_dx11.h"
 #include "ImGUI/imgui_impl_win32.h"
+
+
+
 
 using QuoteEngine::QERenderingModule;
 
@@ -22,7 +31,7 @@ LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
 {
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-
+	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	MSG msg = { 0 };
 	HWND wndHandle = InitWindow(hInstance); //1. Skapa fönster
 	
@@ -62,7 +71,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		}
 		DestroyWindow(wndHandle);
 	}
-
+	_CrtDumpMemoryLeaks();
 	return (int) msg.wParam;
 }
 
