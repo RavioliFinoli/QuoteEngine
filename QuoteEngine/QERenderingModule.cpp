@@ -5,6 +5,7 @@
 #include "ImGUI/imgui_impl_win32.h"
 #include <unordered_map>
 #include <d3d11_1.h>
+#include "debugCommon.h"
 
 using QuoteEngine::QEShader;
 using QuoteEngine::QEShaderProgram;
@@ -27,9 +28,6 @@ void QuoteEngine::QERenderingModule::render()
 
 	// clear the back buffer to a deep blue
 	float clearColor[] = { 0, 0, 0, 1 };
-
-
-	// use DeviceContext to talk to the API
 	gDeviceContext->ClearRenderTargetView(gBackbufferRTV.Get(), clearColor);
 	gDeviceContext->ClearDepthStencilView(gDepthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0.0);
 
@@ -96,11 +94,11 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 	WVP = DirectX::XMMatrixMultiply(ViewMatrix, ProjectionMatrix);
 	DirectX::XMStoreFloat4x4(&perModel._WVP, WVP);
 
-	QEConstantBuffer* VSTest = new QEConstantBuffer(sizeof(perModel), &perModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
+	QEConstantBuffer* VSTest = DBG_NEW QEConstantBuffer(sizeof(perModel), &perModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
 
 
 	HRESULT hr = S_OK;
-	QEShader* vertexShader = new QEShader();
+	QEShader* vertexShader = DBG_NEW QEShader();
 	hr = vertexShader->compileFromFile(QuoteEngine::SHADER_TYPE::VERTEX_SHADER, L"Vertex.hlsl");
 	std::unordered_map<std::string, QEConstantBuffer*> VSBuffers;
 	VSBuffers.insert({ "WVP", VSTest });
@@ -165,6 +163,7 @@ QuoteEngine::QERenderingModule::~QERenderingModule()
 
 	for (auto shaderProgram : m_ShaderPrograms)
 		delete shaderProgram;
+
 }
 
 HRESULT QuoteEngine::QERenderingModule::createDirect3DContext(HWND wndHandle)
@@ -180,10 +179,10 @@ HRESULT QuoteEngine::QERenderingModule::createDirect3DContext(HWND wndHandle)
 	scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;     // use 32-bit color
 	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;      // how swap chain is to be used
 	scd.OutputWindow = wndHandle;                           // the window to be used
-	scd.SampleDesc.Count = 1;                               // how many multisamples
+	scd.SampleDesc.Count = 1;                               // how many multi samples
 	scd.Windowed = TRUE;                                    // windowed/full-screen mode
 
-															// create a device, device context and swap chain using the information in the scd struct
+	// create a device, device context and swap chain using the information in the scd struct
 	HRESULT hr = D3D11CreateDeviceAndSwapChain(NULL,
 		D3D_DRIVER_TYPE_HARDWARE,
 		NULL,
