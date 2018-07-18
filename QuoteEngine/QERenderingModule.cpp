@@ -78,7 +78,7 @@ QuoteEngine::QERenderingModule::QERenderingModule(HWND WindowHandle)
 HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 {
 	/*
-	*Currently hardcoding shaders and shader programs*
+	*Currently hard coding shaders and shader programs*
 	*/
 
 	//Constant buffers
@@ -127,7 +127,7 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 			0,				// same slot as previous (same vertexBuffer)
 			DXGI_FORMAT_R32G32B32_FLOAT,
 			0,
-			12,							// offset of FIRST element (after POSITION)
+			D3D11_APPEND_ALIGNED_ELEMENT,							// offset of FIRST element (after POSITION)
 			D3D11_INPUT_PER_VERTEX_DATA,
 			0
 		},
