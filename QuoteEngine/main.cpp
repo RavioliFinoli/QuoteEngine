@@ -43,8 +43,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	IMGUI_CHECKVERSION();
 	ImGuiContext* imguiContext = ImGui::CreateContext();
 	ImGui::SetCurrentContext(imguiContext);
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-
+	ImGuiIO& io = ImGui::GetIO();
 
 
 	if (wndHandle)
@@ -76,6 +75,8 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		}
 		DestroyWindow(wndHandle);
 	}
+	ImGui::DestroyContext(imguiContext);
+
 	_CrtDumpMemoryLeaks();
 	return (int) msg.wParam;
 }
