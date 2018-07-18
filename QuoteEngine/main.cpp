@@ -13,6 +13,7 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include "QERenderingModule.h"
+#include "QEInputModule.h"
 #include "ImGUI/imgui.h"
 #include "ImGUI/imgui_impl_dx11.h"
 #include "ImGUI/imgui_impl_win32.h"
@@ -21,6 +22,7 @@
 
 
 using QuoteEngine::QERenderingModule;
+using QuoteEngine::QEInputModule;
 
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dcompiler.lib")
@@ -33,7 +35,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	MSG msg = { 0 };
-	HWND wndHandle = InitWindow(hInstance); //1. Skapa fönster
+	HWND wndHandle = InitWindow(hInstance);
 	
 
 
@@ -51,6 +53,8 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		renderingModule.compileShadersAndCreateShaderPrograms();
 		renderingModule.createModels();
 
+		QEInputModule inputModule(hInstance, wndHandle);
+
 		//Init imgui
 		ImGui_ImplWin32_Init(wndHandle);
 		ImGui_ImplDX11_Init(QERenderingModule::gDevice.Get(), QERenderingModule::gDeviceContext.Get());
@@ -66,6 +70,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 			}
 			else
 			{
+				inputModule.Update();
 				renderingModule.render();
 			}
 		}
