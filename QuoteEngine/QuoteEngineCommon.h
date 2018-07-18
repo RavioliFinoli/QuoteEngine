@@ -2,6 +2,7 @@
 #include <DirectXMath.h>
 
 #define ASSERT_SOK(x) assert(x == S_OK)
+#define MOVEMENT_SPEED_MODIFIER 1.0f
 
 namespace QuoteEngine
 {
