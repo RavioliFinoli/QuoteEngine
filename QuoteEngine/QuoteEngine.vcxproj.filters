@@ -73,6 +73,9 @@
     <ClCompile Include="ImGUI\imgui_impl_win32.cpp">
       <Filter>Graphics\ImGUI</Filter>
     </ClCompile>
+    <ClCompile Include="QEInputModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QERenderingModule.h">
@@ -121,6 +124,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="debugCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QEInputModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
