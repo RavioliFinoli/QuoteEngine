@@ -19,6 +19,7 @@ namespace QuoteEngine
 		~Camera();
 
 		DirectX::XMMATRIX getViewMatrix();
+		void setViewMatrix(DirectX::XMMATRIX matrix);
 
 		void update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector);
 

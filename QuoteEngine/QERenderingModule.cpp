@@ -419,6 +419,11 @@ DirectX::XMMATRIX QuoteEngine::Camera::getViewMatrix()
 	return m_ViewMatrix;
 }
 
+void QuoteEngine::Camera::setViewMatrix(DirectX::XMMATRIX matrix)
+{
+	m_ViewMatrix = matrix;
+}
+
 void QuoteEngine::Camera::update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector = { 0, 1, 0, 0 })
 {
 	m_ViewMatrix = DirectX::XMMatrixLookAtLH(EyePosition, Focus, UpVector);
