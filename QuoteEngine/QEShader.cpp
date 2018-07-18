@@ -213,6 +213,8 @@ QuoteEngine::QEShaderProgram::QEShaderProgram()
 
 QuoteEngine::QEShaderProgram::~QEShaderProgram()
 {
+	for (auto& buffer : m_ConstantBuffers)
+		delete buffer.second;
 }
 
 HRESULT QuoteEngine::QEShaderProgram::initializeShaders(const std::vector<QEShader*>& shaders)

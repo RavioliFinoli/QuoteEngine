@@ -63,7 +63,7 @@ namespace QuoteEngine
 		*/
 		QEGUI m_gui;
 
-		std::vector<QEModel*> m_Models;
+		std::vector<std::unique_ptr<QEModel>> m_Models;
 		std::vector<QuoteEngine::QEShader*> m_Shaders;
 		std::vector<std::unique_ptr<QuoteEngine::QEShaderProgram>> m_ShaderPrograms;
 

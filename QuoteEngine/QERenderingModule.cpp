@@ -38,7 +38,7 @@ void QuoteEngine::QERenderingModule::render()
 	m_ShaderPrograms[0]->bind();
 
 	//drawModels();
-	for (auto model : m_Models)
+	for (auto& model : m_Models)
 	{
 		{
 			//Update cbuffer
@@ -103,9 +103,8 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 	QEShader* pixelShader = new QEShader();
 	hr = pixelShader->compileFromFile(QuoteEngine::SHADER_TYPE::PIXEL_SHADER, L"Fragment.hlsl");
 
-	QEShaderProgram* basicProgram = new QEShaderProgram();
-	hr = basicProgram->initializeShaders({ vertexShader, pixelShader, nullptr, nullptr });
-
+	m_Shaders.push_back(pixelShader);
+	m_Shaders.push_back(vertexShader);
 	
 	//Create layout
 	D3D11_INPUT_ELEMENT_DESC inputDesc[] = {
@@ -128,7 +127,6 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 			0
 		},
 	};
-	hr = basicProgram->initializeInputLayout(inputDesc, 2);
 
 	m_ShaderPrograms.push_back(createProgram("basicProgram", {vertexShader, pixelShader, nullptr, nullptr}, inputDesc, 2));
 
@@ -137,24 +135,15 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 
 void QuoteEngine::QERenderingModule::createModels()
 {
-	QEModel* triangle = new QEModel();
-	m_Models.push_back(triangle);
+	m_Models.push_back(std::make_unique<QEModel>());
+	m_Models.push_back(std::make_unique<QEModel>());
 
-	QEModel* secondTriangle = new QEModel();
-	secondTriangle->setWorldMatrix(DirectX::XMMatrixTranslation(0.5, 0.0, 0.5));
-	m_Models.push_back(secondTriangle);
+	m_Models.back()->setWorldMatrix(DirectX::XMMatrixTranslation(0.5, 0.0, 0.5));
 }
 
 QuoteEngine::QERenderingModule::~QERenderingModule()
 {
-	/*
-	*Delete newed heap assets
-	*/
-
-	for (auto model : m_Models)
-		delete model;
-
-	for (auto shader : m_Shaders)
+	for (auto& shader : m_Shaders)
 		delete shader;
 }
 
