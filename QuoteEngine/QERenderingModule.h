@@ -55,6 +55,7 @@ namespace QuoteEngine
 		HRESULT compileShadersAndCreateShaderPrograms();
 		void createModels();
 		
+
 		~QERenderingModule();
 
 	private:

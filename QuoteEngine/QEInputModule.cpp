@@ -1,10 +1,13 @@
 #include "QEInputModule.h"
 #include "QuoteEngineCommon.h"
+#include "QERenderingModule.h"
+
+using QuoteEngine::QERenderingModule;
 
 void QuoteEngine::QEInputModule::Update()
 {
 	double delta = GetTime();
-
+	ResetTimer();
 	DIMOUSESTATE mouseCurrState;
 
 	BYTE keyboardState[256];
@@ -23,11 +26,15 @@ void QuoteEngine::QEInputModule::Update()
 	}
 	if (keyboardState[DIK_W] & 0x80)
 	{
-		
+		auto viewMatrix = QERenderingModule::gCamera.getViewMatrix();
+		auto newViewMatrix = DirectX::XMMatrixMultiply(viewMatrix, DirectX::XMMatrixTranslation(0.0, 0.0, MOVEMENT_SPEED_MODIFIER * delta * 1.0f));
+		QERenderingModule::gCamera.setViewMatrix(newViewMatrix);
 	}
-	if (keyboardState[DIK_ESCAPE] & 0x80)
+	if (keyboardState[DIK_S] & 0x80)
 	{
-		PostMessage(m_hwnd, WM_DESTROY, 0, 0);
+		auto viewMatrix = QERenderingModule::gCamera.getViewMatrix();
+		auto newViewMatrix = DirectX::XMMatrixMultiply(viewMatrix, DirectX::XMMatrixTranslation(0.0, 0.0, MOVEMENT_SPEED_MODIFIER * delta * -1.0f));
+		QERenderingModule::gCamera.setViewMatrix(newViewMatrix);
 	}
 }
 
@@ -71,16 +78,20 @@ QuoteEngine::QEInputModule::QEInputModule(HINSTANCE hInstance, HWND hwnd)
 	ASSERT_SOK(hr);
 
 	//Time
-	{
-		LARGE_INTEGER frequencyCount;
-		QueryPerformanceFrequency(&frequencyCount);
+	ResetTimer();
 
-		countsPerSecond = double(frequencyCount.QuadPart);
 
-		QueryPerformanceCounter(&frequencyCount);
-		CounterStart = frequencyCount.QuadPart;
-	}
+}
 
+void QuoteEngine::QEInputModule::ResetTimer()
+{
+	LARGE_INTEGER frequencyCount;
+	QueryPerformanceFrequency(&frequencyCount);
+
+	countsPerSecond = double(frequencyCount.QuadPart);
+
+	QueryPerformanceCounter(&frequencyCount);
+	CounterStart = frequencyCount.QuadPart;
 }
 
 QuoteEngine::QEInputModule::~QEInputModule()

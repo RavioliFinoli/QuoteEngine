@@ -65,7 +65,7 @@ void QuoteEngine::QERenderingModule::render()
 	//m_gui.updateAndDraw();
 
 	//all models drawn; present.
-	gSwapChain->Present(1, 0);
+	gSwapChain->Present(0, 0);
 }
 
 QuoteEngine::QERenderingModule::QERenderingModule(HWND WindowHandle)

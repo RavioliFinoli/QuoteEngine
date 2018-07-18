@@ -11,6 +11,9 @@ namespace QuoteEngine
 	{
 	public:
 		QEInputModule(HINSTANCE hInstance, HWND hwnd);
+
+		void ResetTimer();
+
 		~QEInputModule();
 	
 		void Update();
