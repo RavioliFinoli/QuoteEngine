@@ -1,11 +1,13 @@
 #pragma once
 #include <d3d11.h>
 #include <DirectXMath.h>
-
 #include <wrl.h>
 #include <vector>
 #include "QEModel.h"
 #include "QEShader.h"
+
+//using QuoteEngine::QEShaderProgram;
+//using QuoteEngine::QEShader;
 
 namespace QuoteEngine
 {
@@ -63,7 +65,9 @@ namespace QuoteEngine
 
 		std::vector<QEModel*> m_Models;
 		std::vector<QuoteEngine::QEShader*> m_Shaders;
-		std::vector<QuoteEngine::QEShaderProgram*> m_ShaderPrograms;
+		std::vector<std::unique_ptr<QuoteEngine::QEShaderProgram>> m_ShaderPrograms;
+
+		std::unique_ptr<QuoteEngine::QEShaderProgram> createProgram(const std::string name, const std::vector<QEShader*>& shaders, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions, const size_t numElements);
 
 
 		HRESULT createDirect3DContext(HWND wndHandle);

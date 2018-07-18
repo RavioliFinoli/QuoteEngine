@@ -82,10 +82,6 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 	*/
 
 	//Constant buffers
-
-	//float arr[3] = { 1.0f, 0.0f, 0.0f };
-	//QEConstantBuffer* FragmentTest = new QEConstantBuffer(sizeof(float)*3, &arr, 0, QuoteEngine::SHADER_TYPE::PIXEL_SHADER);
-
 	QuoteEngine::CB_PerModel perModel = {};
 	DirectX::XMMATRIX WVP;
 	DirectX::XMMATRIX ViewMatrix = QERenderingModule::gCamera.getViewMatrix();
@@ -94,11 +90,11 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 	WVP = DirectX::XMMatrixMultiply(ViewMatrix, ProjectionMatrix);
 	DirectX::XMStoreFloat4x4(&perModel._WVP, WVP);
 
-	QEConstantBuffer* VSTest = DBG_NEW QEConstantBuffer(sizeof(perModel), &perModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
+	QEConstantBuffer* VSTest = new QEConstantBuffer(sizeof(perModel), &perModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
 
-
+	
 	HRESULT hr = S_OK;
-	QEShader* vertexShader = DBG_NEW QEShader();
+	QEShader* vertexShader = new QEShader();
 	hr = vertexShader->compileFromFile(QuoteEngine::SHADER_TYPE::VERTEX_SHADER, L"Vertex.hlsl");
 	std::unordered_map<std::string, QEConstantBuffer*> VSBuffers;
 	VSBuffers.insert({ "WVP", VSTest });
@@ -134,7 +130,7 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 	};
 	hr = basicProgram->initializeInputLayout(inputDesc, 2);
 
-	m_ShaderPrograms.push_back(basicProgram);
+	m_ShaderPrograms.push_back(createProgram("basicProgram", {vertexShader, pixelShader, nullptr, nullptr}, inputDesc, 2));
 
 	return hr;
 }
@@ -152,7 +148,7 @@ void QuoteEngine::QERenderingModule::createModels()
 QuoteEngine::QERenderingModule::~QERenderingModule()
 {
 	/*
-	*Delete new'd heap assets
+	*Delete newed heap assets
 	*/
 
 	for (auto model : m_Models)
@@ -160,10 +156,17 @@ QuoteEngine::QERenderingModule::~QERenderingModule()
 
 	for (auto shader : m_Shaders)
 		delete shader;
+}
 
-	for (auto shaderProgram : m_ShaderPrograms)
-		delete shaderProgram;
-
+std::unique_ptr<QuoteEngine::QEShaderProgram>
+QuoteEngine::QERenderingModule::createProgram
+	(const std::string name, const std::vector<QEShader*>& shaders, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions, const size_t numElements)
+{
+	std::unique_ptr<QEShaderProgram> program = std::make_unique<QEShaderProgram>();
+	program->initializeShaders(shaders);
+	if (inputElementDescriptions)
+		program->initializeInputLayout(inputElementDescriptions, numElements);
+	return program;
 }
 
 HRESULT QuoteEngine::QERenderingModule::createDirect3DContext(HWND wndHandle)
