@@ -162,6 +162,21 @@ QEModel::~QEModel()
 {
 }
 
+std::string QEModel::getAssociatedShaderProgram()
+{
+	return m_AssociatedShaderProgramName;
+}
+
+void QEModel::setAssociatedShaderProgram(std::string program)
+{
+	m_AssociatedShaderProgramName = program;
+}
+
+bool QEModel::hasAssociatedShaderProgram()
+{
+	return m_AssociatedShaderProgramName != "none";
+}
+
 HRESULT QEModel::create()
 {
 	struct TriangleVertex

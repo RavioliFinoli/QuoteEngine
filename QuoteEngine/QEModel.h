@@ -42,10 +42,15 @@ public:
 	UINT getSizeInBytes();
 	UINT getStrideInBytes();
 	UINT getVertexCount();
+	std::string getAssociatedShaderProgram();
 
 	DirectX::XMMATRIX getWorldMatrix();
 	void setWorldMatrix(DirectX::XMMATRIX);
+	void setAssociatedShaderProgram(std::string program);
+	bool hasAssociatedShaderProgram();
 private:
+
+	std::string m_AssociatedShaderProgramName = "none";
 
 	UINT m_SizeInBytes = 0;
 	UINT m_VertexCount = 0;
