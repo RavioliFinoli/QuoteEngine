@@ -3,6 +3,10 @@
 #include "QERenderingModule.h"
 
 using QuoteEngine::QERenderingModule;
+using DirectX::XMMATRIX;
+using DirectX::XMVECTOR;
+
+#define PI 3.14
 
 void QuoteEngine::QEInputModule::Update()
 {
@@ -18,6 +22,12 @@ void QuoteEngine::QEInputModule::Update()
 	m_DIMouse->GetDeviceState(sizeof(DIMOUSESTATE), &mouseCurrState);
 
 	m_DIKeyboard->GetDeviceState(sizeof(keyboardState), (LPVOID)&keyboardState);
+	float moveLeftRight = 0.0f;
+	float moveBackForward = 0.0f;
+	auto cameraCurrent = QERenderingModule::gCamera.getCameraData();
+	Camera::CameraUpdateData data;
+	data.camPosition = QERenderingModule::gCamera.getCameraPosition();
+	data.camTarget = QERenderingModule::gCamera.getCameraTarget();
 
 	//Process
 	if (keyboardState[DIK_ESCAPE] & 0x80)
@@ -26,16 +36,57 @@ void QuoteEngine::QEInputModule::Update()
 	}
 	if (keyboardState[DIK_W] & 0x80)
 	{
-		auto viewMatrix = QERenderingModule::gCamera.getViewMatrix();
-		auto newViewMatrix = DirectX::XMMatrixMultiply(viewMatrix, DirectX::XMMatrixTranslation(0.0, 0.0, MOVEMENT_SPEED_MODIFIER * delta * 1.0f));
-		QERenderingModule::gCamera.setViewMatrix(newViewMatrix);
+		moveBackForward = 1.0f;
 	}
 	if (keyboardState[DIK_S] & 0x80)
 	{
-		auto viewMatrix = QERenderingModule::gCamera.getViewMatrix();
-		auto newViewMatrix = DirectX::XMMatrixMultiply(viewMatrix, DirectX::XMMatrixTranslation(0.0, 0.0, MOVEMENT_SPEED_MODIFIER * delta * -1.0f));
-		QERenderingModule::gCamera.setViewMatrix(newViewMatrix);
+		moveBackForward = -1.0f;
+
 	}
+	if (keyboardState[DIK_D] & 0x80)
+	{
+		moveLeftRight = 1.0f;
+
+	}
+	if (keyboardState[DIK_A] & 0x80)
+	{
+		moveLeftRight = -1.0f;
+
+	}
+	if (mouseCurrState.lX != m_mouseLastState.lX || mouseCurrState.lY != m_mouseLastState.lY)
+	{
+		cameraCurrent.camPitch += mouseCurrState.lY * 0.001f;
+		cameraCurrent.camYaw += mouseCurrState.lX * 0.001f;
+
+		cameraCurrent.camPitch = cameraCurrent.camPitch < -PI ? -PI : cameraCurrent.camPitch;
+		cameraCurrent.camPitch = cameraCurrent.camPitch > PI ? PI : cameraCurrent.camPitch;
+
+	}
+
+	XMMATRIX camRotationMatrix = DirectX::XMMatrixRotationRollPitchYaw(cameraCurrent.camPitch, cameraCurrent.camYaw, 0);
+	XMVECTOR camTarget = DirectX::XMVector3TransformCoord(DEFAULT_FORWARD, camRotationMatrix);
+	camTarget = DirectX::XMVector3Normalize(camTarget);
+
+	XMMATRIX RotateYTempMatrix;
+	RotateYTempMatrix = DirectX::XMMatrixRotationY(cameraCurrent.camYaw);
+
+	XMVECTOR camRight = DirectX::XMVector4Transform(DEFAULT_RIGHT, RotateYTempMatrix);
+	XMVECTOR camForward = XMVector4Transform(DEFAULT_FORWARD, RotateYTempMatrix);
+	cameraCurrent.camPosition = DirectX::XMVectorAdd(DirectX::XMVectorScale(camRight, moveLeftRight * delta), cameraCurrent.camPosition);
+	cameraCurrent.camPosition = DirectX::XMVectorAdd(DirectX::XMVectorScale(camForward, moveBackForward * delta), cameraCurrent.camPosition);
+
+
+
+	camTarget = DirectX::XMVectorAdd(cameraCurrent.camPosition, camTarget);
+	data.camPosition = cameraCurrent.camPosition;
+	data.camTarget = camTarget;
+
+	camTarget.m128_f32[3] = 0.0f;
+	m_mouseLastState = mouseCurrState;
+
+	QERenderingModule::gCamera.update(data);
+	QERenderingModule::gCamera.updateCameraInformation(cameraCurrent);
+
 }
 
 double QuoteEngine::QEInputModule::GetTime()

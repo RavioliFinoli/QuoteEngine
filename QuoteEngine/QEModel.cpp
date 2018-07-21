@@ -33,7 +33,7 @@ QEModel::QEModel(std::string file) noexcept
 
 	std::ifstream OBJFile;
 	//Open file
-	string path = string(string("Resources/") + file + ".obj");
+	string path = string(file + ".obj");
 	OBJFile.open(path);
 
 	assert(OBJFile.is_open() && "obj file not open");

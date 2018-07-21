@@ -250,8 +250,22 @@ HRESULT QuoteEngine::QEShaderProgram::initializeInputLayout(const D3D11_INPUT_EL
 
 HRESULT QuoteEngine::QEShaderProgram::updateBuffer(std::string key, PVOID data)
 {
-	m_ConstantBuffers.at(key)->update(data);
-	return E_NOTIMPL;
+	QEConstantBuffer* buffer = nullptr;
+	try
+	{
+		buffer = m_ConstantBuffers.at(key);
+	}
+	catch (std::out_of_range e)
+	{
+		return E_INVALIDARG;
+	}
+
+	if (data)
+	{
+		m_ConstantBuffers.at(key)->update(data);
+		return S_OK;
+	}
+	return E_FAIL;
 }
 
 void QuoteEngine::QEShaderProgram::bind()

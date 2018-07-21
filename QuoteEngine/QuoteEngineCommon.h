@@ -18,4 +18,10 @@ namespace QuoteEngine
 	{
 		DirectX::XMFLOAT4X4 _WVP;
 	};
+
+	struct CB_PerModel_WVP_W 
+	{
+		DirectX::XMFLOAT4X4 _WVP;
+		DirectX::XMFLOAT4X4 _W;
+	};
 }

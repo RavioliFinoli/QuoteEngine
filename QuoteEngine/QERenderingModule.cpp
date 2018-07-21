@@ -9,6 +9,8 @@
 
 using QuoteEngine::QEShader;
 using QuoteEngine::QEShaderProgram;
+using QuoteEngine::CB_PerModel_WVP_W;
+using QuoteEngine::CB_PerModel;
 
 Microsoft::WRL::ComPtr<ID3D11Device> QuoteEngine::QERenderingModule::gDevice(nullptr);
 Microsoft::WRL::ComPtr<ID3D11DeviceContext> QuoteEngine::QERenderingModule::gDeviceContext(nullptr);
@@ -35,32 +37,37 @@ void QuoteEngine::QERenderingModule::render()
 	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//Set shader program (hardcoded for now)
-	m_ShaderPrograms[0]->bind();
-
+	
 	//drawModels();
 	for (auto& model : m_Models)
 	{
+		if (model->hasAssociatedShaderProgram())
 		{
-			//Update cbuffer
-			QuoteEngine::CB_PerModel perModel = {};
-			auto WVP = model->getWorldMatrix();
-			DirectX::XMMATRIX ViewMatrix = QERenderingModule::gCamera.getViewMatrix();
-			DirectX::XMMATRIX ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(1.57, (float)640 / (float)480, 0.1f, 100.f);
-
-			WVP = DirectX::XMMatrixMultiply(WVP, DirectX::XMMatrixMultiply(ViewMatrix, ProjectionMatrix));
-			DirectX::XMStoreFloat4x4(&perModel._WVP, WVP);
-			
-			m_ShaderPrograms[0]->updateBuffer("WVP", &perModel);
-		}
-
-		//get the buffer, stride and offset
-		ID3D11Buffer* buffer = model->getVertexBuffer(); 
-		UINT stride = model->getStrideInBytes();
-		UINT offset = 0;
-
-		//set the buffer and draw model
-		gDeviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
-		gDeviceContext->Draw(model->getVertexCount(), 0);
+			std::string program = model->getAssociatedShaderProgram();
+			m_ShaderPrograms.at(program)->bind();
+			{
+				//Update cbuffer
+				QuoteEngine::CB_PerModel_WVP_W perModel = {};
+				auto WVP = model->getWorldMatrix();
+				DirectX::XMStoreFloat4x4(&perModel._W, WVP);
+				DirectX::XMMATRIX ViewMatrix = QERenderingModule::gCamera.getViewMatrix();
+				DirectX::XMMATRIX ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(1.57, (float)640 / (float)480, 0.1f, 100.f);
+	
+				WVP = DirectX::XMMatrixMultiply(WVP, DirectX::XMMatrixMultiply(ViewMatrix, ProjectionMatrix));
+				DirectX::XMStoreFloat4x4(&perModel._WVP, WVP);
+				
+				m_ShaderPrograms.at(program)->updateBuffer("WVP_W", &perModel);
+			}
+	
+			//get the buffer, stride and offset
+			ID3D11Buffer* buffer = model->getVertexBuffer(); 
+			UINT stride = model->getStrideInBytes();
+			UINT offset = 0;
+	
+			//set the buffer and draw model
+			gDeviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
+			gDeviceContext->Draw(model->getVertexCount(), 0);
+}
 	}
 	//m_gui.updateAndDraw();
 
@@ -82,32 +89,40 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 	*/
 
 	//Constant buffers
-	QuoteEngine::CB_PerModel perModel = {};
-	DirectX::XMMATRIX WVP;
-	DirectX::XMMATRIX ViewMatrix = QERenderingModule::gCamera.getViewMatrix();
-	DirectX::XMMATRIX ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(1.57, (float)640/(float)480, 0.1f, 100.f);
+	CB_PerModel_WVP_W initPerModel = {};
+	QEConstantBuffer* VSTest = new QEConstantBuffer(sizeof(QuoteEngine::CB_PerModel), &initPerModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
+	QEConstantBuffer* WVP_W = new QEConstantBuffer(sizeof(QuoteEngine::CB_PerModel_WVP_W), &initPerModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
 
-	WVP = DirectX::XMMatrixMultiply(ViewMatrix, ProjectionMatrix);
-	DirectX::XMStoreFloat4x4(&perModel._WVP, WVP);
 
-	QEConstantBuffer* VSTest = new QEConstantBuffer(sizeof(perModel), &perModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
-
-	
 	HRESULT hr = S_OK;
+
+	QEShader* diffuseVertexShader = new QEShader();
+	hr = diffuseVertexShader->compileFromFile(SHADER_TYPE::VERTEX_SHADER, L"DiffuseVertexShader.hlsl");
+	QEShader* diffusePixelShader = new QEShader();
+	hr = diffusePixelShader->compileFromFile(SHADER_TYPE::PIXEL_SHADER, L"DiffusePixelShader.hlsl");
+
+
 	QEShader* vertexShader = new QEShader();
 	hr = vertexShader->compileFromFile(QuoteEngine::SHADER_TYPE::VERTEX_SHADER, L"Vertex.hlsl");
+
 	std::unordered_map<std::string, QEConstantBuffer*> VSBuffers;
 	VSBuffers.insert({ "WVP", VSTest });
+	std::unordered_map<std::string, QEConstantBuffer*> DiffusePerModel;
+	DiffusePerModel.insert({ "WVP_W", WVP_W });
+
 	vertexShader->addConstantBuffers(VSBuffers);
+	diffuseVertexShader->addConstantBuffers(DiffusePerModel);
 
 	QEShader* pixelShader = new QEShader();
 	hr = pixelShader->compileFromFile(QuoteEngine::SHADER_TYPE::PIXEL_SHADER, L"Fragment.hlsl");
 
 	m_Shaders.push_back(pixelShader);
 	m_Shaders.push_back(vertexShader);
-	
-	//Create layout
-	D3D11_INPUT_ELEMENT_DESC inputDesc[] = {
+	m_Shaders.push_back(diffuseVertexShader);
+	m_Shaders.push_back(diffusePixelShader);
+
+	//Create layouts
+	D3D11_INPUT_ELEMENT_DESC basicInputDesc[] = {
 		{
 			"POSITION",		// "semantic" name in shader
 			0,				// "semantic" index (not used)
@@ -128,8 +143,37 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 		},
 	};
 
-	m_ShaderPrograms.push_back(createProgram("basicProgram", {vertexShader, pixelShader, nullptr, nullptr}, inputDesc, 2));
-
+	D3D11_INPUT_ELEMENT_DESC diffuseInputDesc[] = {
+		{
+			"POSITION",		// "semantic" name in shader
+			0,				// "semantic" index (not used)
+			DXGI_FORMAT_R32G32B32_FLOAT, // size of ONE element (3 floats)
+			0,							 // input slot
+			0,							 // offset of first element
+			D3D11_INPUT_PER_VERTEX_DATA, // specify data PER vertex
+			0							 // used for INSTANCING (ignore)
+		},
+		{
+			"NORMAL",
+			0,				// same slot as previous (same vertexBuffer)
+			DXGI_FORMAT_R32G32B32_FLOAT,
+			0,
+			D3D11_APPEND_ALIGNED_ELEMENT,							// offset of FIRST element (after POSITION)
+			D3D11_INPUT_PER_VERTEX_DATA,
+			0
+		},
+		{
+			"TEXCOORD",
+			0,				// same slot as previous (same vertexBuffer)
+			DXGI_FORMAT_R32G32_FLOAT,
+			0,
+			D3D11_APPEND_ALIGNED_ELEMENT,							// offset of FIRST element (after POSITION)
+			D3D11_INPUT_PER_VERTEX_DATA,
+			0
+		}
+	};
+	m_ShaderPrograms.insert({ "basicProgram", createProgram("basicProgram", {vertexShader, pixelShader, nullptr, nullptr}, basicInputDesc, 2) });
+	m_ShaderPrograms.insert({ "diffuseProgram", createProgram("diffuseProgram", {diffuseVertexShader, diffusePixelShader, nullptr, nullptr}, diffuseInputDesc, 3) });
 	return hr;
 }
 
@@ -139,6 +183,15 @@ void QuoteEngine::QERenderingModule::createModels()
 	m_Models.push_back(std::make_unique<QEModel>());
 
 	m_Models.back()->setWorldMatrix(DirectX::XMMatrixTranslation(0.5, 0.0, 0.5));
+
+	m_Models.push_back(std::make_unique<QEModel>("sphere"));
+	m_Models.back()->setAssociatedShaderProgram("diffuseProgram");
+	m_Models.back()->setWorldMatrix(DirectX::XMMatrixTranslation(0.0, -0.5, 0.0));
+
+	m_Models.push_back(std::make_unique<QEModel>("cube"));
+	m_Models.back()->setAssociatedShaderProgram("diffuseProgram");
+	m_Models.back()->setWorldMatrix(DirectX::XMMatrixTranslation(-1.0, -1.0, 0.0));
+
 }
 
 QuoteEngine::QERenderingModule::~QERenderingModule()
@@ -402,7 +455,7 @@ bool QuoteEngine::QEGUI::init()
 
 QuoteEngine::Camera::Camera()
 {
-	update({ 0.0, 0.0f, -2.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
+	update({ 0.0, 0.0f, -1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f, 0.0f });
 }
 
 QuoteEngine::Camera::Camera(DirectX::XMVECTOR EyePosition = { 0.0f, 0.0f, -1.0f, 1.0f }, DirectX::XMVECTOR Focus = { 0.0f, 0.0f, 1.0f, 1.0f }, DirectX::XMVECTOR UpVector = {0.0f, 1.0f, 0.0f, 0.0f})
@@ -419,12 +472,43 @@ DirectX::XMMATRIX QuoteEngine::Camera::getViewMatrix()
 	return m_ViewMatrix;
 }
 
+DirectX::XMVECTOR QuoteEngine::Camera::getCameraPosition()
+{
+	return m_CamPosition;
+}
+
+DirectX::XMVECTOR QuoteEngine::Camera::getCameraTarget()
+{
+	return m_CamTarget;
+}
+
 void QuoteEngine::Camera::setViewMatrix(DirectX::XMMATRIX matrix)
 {
 	m_ViewMatrix = matrix;
 }
 
-void QuoteEngine::Camera::update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector = { 0, 1, 0, 0 })
+void QuoteEngine::Camera::update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector)
 {
 	m_ViewMatrix = DirectX::XMMatrixLookAtLH(EyePosition, Focus, UpVector);
+	m_CamPosition = EyePosition;
+	m_CamTarget = Focus;
+}
+
+void QuoteEngine::Camera::update(CameraUpdateData data)
+{
+	m_CamPosition = data.camPosition;
+	m_CamTarget = data.camTarget;
+	m_ViewMatrix = DirectX::XMMatrixLookAtLH(data.camPosition, data.camTarget, data.camUp);
+}
+
+QuoteEngine::Camera::CameraData QuoteEngine::Camera::getCameraData()
+{
+	return {m_CamPitch, m_CamYaw, m_CamPosition};
+}
+
+void QuoteEngine::Camera::updateCameraInformation(CameraData info)
+{
+	m_CamPitch = info.camPitch;
+	m_CamYaw = info.camYaw;
+	m_CamPosition = info.camPosition;
 }

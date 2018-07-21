@@ -11,20 +11,46 @@
 
 namespace QuoteEngine
 {
+	#define DEFAULT_FORWARD {0.0, 0.0, 1.0, 0.0}
+	#define DEFAULT_RIGHT {1.0, 0.0, 0.0, 0.0}
+
 	class Camera
 	{
 	public:
+		struct CameraData
+		{
+			float camPitch = 0;
+			float camYaw = 0;
+			DirectX::XMVECTOR camPosition = { 0.0, 0.0, 0.0, 1.0 };
+		};
+
+		struct CameraUpdateData 
+		{
+			DirectX::XMVECTOR camPosition = { 0.0, 0.0, 0.0, 1.0 };
+			DirectX::XMVECTOR camTarget = { 0.0, 0.0, 0.0, 1.0 };
+			DirectX::XMVECTOR camUp = { 0.0, 1.0, 0.0, 1.0 };
+		};
+
 		Camera();
 		Camera(DirectX::XMVECTOR, DirectX::XMVECTOR, DirectX::XMVECTOR);
 		~Camera();
 
 		DirectX::XMMATRIX getViewMatrix();
+		DirectX::XMVECTOR getCameraPosition();
+		DirectX::XMVECTOR getCameraTarget();
 		void setViewMatrix(DirectX::XMMATRIX matrix);
 
-		void update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector);
-
+		void update(DirectX::XMVECTOR EyePosition, DirectX::XMVECTOR Focus, DirectX::XMVECTOR UpVector = {0.0, 1.0, 0.0, 0.0});
+		void update(CameraUpdateData data);
+		CameraData getCameraData();
+		void updateCameraInformation(CameraData info);
 	private:
 		DirectX::XMMATRIX m_ViewMatrix;
+		DirectX::XMVECTOR m_CamPosition = {0.0, 0.0, -1.0, 1.0};
+		DirectX::XMVECTOR m_CamTarget = {0.0, 0.0, 0.0, 0.0};
+
+		float m_CamYaw = 0;
+		float m_CamPitch = 0;
 	};
 
 	class QEGUI
@@ -67,7 +93,7 @@ namespace QuoteEngine
 
 		std::vector<std::unique_ptr<QEModel>> m_Models;
 		std::vector<QuoteEngine::QEShader*> m_Shaders;
-		std::vector<std::unique_ptr<QuoteEngine::QEShaderProgram>> m_ShaderPrograms;
+		std::unordered_map < std::string, std::unique_ptr<QuoteEngine::QEShaderProgram >> m_ShaderPrograms;
 
 		std::unique_ptr<QuoteEngine::QEShaderProgram> createProgram(const std::string name, const std::vector<QEShader*>& shaders, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions, const size_t numElements);
 
