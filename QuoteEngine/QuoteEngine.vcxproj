@@ -195,6 +195,8 @@
     <ClCompile Include="QEModel.cpp" />
     <ClCompile Include="QERenderingModule.cpp" />
     <ClCompile Include="QEShader.cpp" />
+    <ClCompile Include="QETexture.cpp" />
+    <ClCompile Include="WICTextureLoader\WICTextureLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debugCommon.h" />
@@ -212,8 +214,10 @@
     <ClInclude Include="QEModel.h" />
     <ClInclude Include="QERenderingModule.h" />
     <ClInclude Include="QEShader.h" />
+    <ClInclude Include="QETexture.h" />
     <ClInclude Include="QuoteEngineCommon.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="WICTextureLoader\WICTextureLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="QuoteEngine.rc" />

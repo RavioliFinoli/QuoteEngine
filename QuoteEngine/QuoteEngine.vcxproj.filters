@@ -22,6 +22,9 @@
     <Filter Include="Graphics\ImGUI">
       <UniqueIdentifier>{3e35b03a-8ec8-4e32-9892-518899d61475}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics\WICTextureLoader">
+      <UniqueIdentifier>{3befe795-73ab-46dc-ab9d-477fd848d2b2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
@@ -82,6 +85,12 @@
     <ClCompile Include="QEInputModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="QETexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WICTextureLoader\WICTextureLoader.cpp">
+      <Filter>Graphics\WICTextureLoader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QERenderingModule.h">
@@ -134,6 +143,12 @@
     </ClInclude>
     <ClInclude Include="QEInputModule.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="QETexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WICTextureLoader\WICTextureLoader.h">
+      <Filter>Graphics\WICTextureLoader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
