@@ -1,6 +1,7 @@
 #include "QEModel.h"
 #include "QERenderingModule.h"
 #include <fstream>
+
 using QuoteEngine::QERenderingModule;
 
 inline void split(const std::string& s, char c,
@@ -155,6 +156,62 @@ QEModel::QEModel(std::string file) noexcept
 		HRESULT hr = QuoteEngine::QERenderingModule::gDevice->CreateBuffer(&bufferDesc, &data, m_VertexBuffer.ReleaseAndGetAddressOf());
 		assert(hr == S_OK);
 	}
+
+	if (mtllib.size() > 0)
+	{
+		std::ifstream MTLFile;
+		//open
+		std::string mtlfile = std::string(mtllib);
+		MTLFile.open(mtlfile);
+
+		assert(MTLFile.is_open() && "mtl file not open");
+
+		std::string input;
+		while (!MTLFile.eof())
+		{
+			MTLFile >> input;
+
+			//-----------------
+			// Diffuse Texture
+			//-----------------
+			if (input == "map_Kd")
+			{
+				useTexture = true;
+
+				MTLFile >> input;
+				string narrow_string(input);
+				std::wstring wide_string = std::wstring(narrow_string.begin(), narrow_string.end());
+				//this->LoadTexture(wide_string.c_str());
+
+				//Create texture
+				m_Texture = std::make_unique<QuoteEngine::QETexture>(wide_string.c_str());
+				break;
+			}
+			else if (input == "Ks")
+			{
+				MTLFile >> m_Material.KsR >> m_Material.KsG >> m_Material.KsB;
+			}
+			else if (input == "Ka")
+			{
+				MTLFile >> m_Material.KaR >> m_Material.KaG >> m_Material.KaB;
+			}
+			else if (input == "Kd")
+			{
+				MTLFile >> m_Material.KdR >> m_Material.KdG >> m_Material.KdB;
+			}
+			else if (input == "Ns")
+			{
+				MTLFile >> m_Material.Ns;
+			}
+		}
+
+		(useTexture) ?
+			m_Material.UseTexture = 1.0f
+			: m_Material.UseTexture = -1.0f;
+
+		MTLFile.close();
+	}
+
 }
 
 
@@ -167,9 +224,20 @@ std::string QEModel::getAssociatedShaderProgram()
 	return m_AssociatedShaderProgramName;
 }
 
+QEModel::QEMaterial QEModel::getMaterial()
+{
+	return m_Material;
+}
+
 void QEModel::setAssociatedShaderProgram(std::string program)
 {
 	m_AssociatedShaderProgramName = program;
+}
+
+void QEModel::bindTexture()
+{
+	if (m_Texture)
+		m_Texture->bind();
 }
 
 bool QEModel::hasAssociatedShaderProgram()

@@ -45,18 +45,34 @@ void QuoteEngine::QERenderingModule::render()
 		{
 			std::string program = model->getAssociatedShaderProgram();
 			m_ShaderPrograms.at(program)->bind();
+
+			if (program == "diffuseProgram")
 			{
-				//Update cbuffer
-				QuoteEngine::CB_PerModel_WVP_W perModel = {};
-				auto WVP = model->getWorldMatrix();
-				DirectX::XMStoreFloat4x4(&perModel._W, WVP);
-				DirectX::XMMATRIX ViewMatrix = QERenderingModule::gCamera.getViewMatrix();
-				DirectX::XMMATRIX ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(1.57, (float)640 / (float)480, 0.1f, 100.f);
-	
-				WVP = DirectX::XMMatrixMultiply(WVP, DirectX::XMMatrixMultiply(ViewMatrix, ProjectionMatrix));
-				DirectX::XMStoreFloat4x4(&perModel._WVP, WVP);
-				
-				m_ShaderPrograms.at(program)->updateBuffer("WVP_W", &perModel);
+				//Update VS cbuffer
+				{
+					QuoteEngine::CB_PerModel_WVP_W perModel = {};
+					auto WVP = model->getWorldMatrix();
+					DirectX::XMStoreFloat4x4(&perModel._W, WVP);
+					DirectX::XMMATRIX ViewMatrix = QERenderingModule::gCamera.getViewMatrix();
+					DirectX::XMMATRIX ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(1.57, (float)640 / (float)480, 0.1f, 100.f);
+		
+					WVP = DirectX::XMMatrixMultiply(WVP, DirectX::XMMatrixMultiply(ViewMatrix, ProjectionMatrix));
+					DirectX::XMStoreFloat4x4(&perModel._WVP, WVP);
+					
+					m_ShaderPrograms.at(program)->updateBuffer("WVP_W", &perModel);
+				}
+
+				//Update PS cbuffers
+				{
+					QuoteEngine::CB_PerFrame_Cam perFrame = {};
+					DirectX::XMFLOAT4 camPos;
+					DirectX::XMStoreFloat4(&camPos, QERenderingModule::gCamera.getCameraPosition());
+					perFrame._CamPosition = { camPos.x, camPos.y, camPos.z };
+					m_ShaderPrograms.at(program)->updateBuffer("CAM", &perFrame);
+
+					QEModel::QEMaterial material = model->getMaterial();
+					m_ShaderPrograms.at(program)->updateBuffer("MATERIAL", &material);
+				}
 			}
 	
 			//get the buffer, stride and offset
@@ -66,6 +82,7 @@ void QuoteEngine::QERenderingModule::render()
 	
 			//set the buffer and draw model
 			gDeviceContext->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
+			model->bindTexture();
 			gDeviceContext->Draw(model->getVertexCount(), 0);
 }
 	}
@@ -90,10 +107,13 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 
 	//Constant buffers
 	CB_PerModel_WVP_W initPerModel = {};
+	CB_PerModel_Material initMaterial = {};
+	CB_PerFrame_Cam initPerFrame = {};
+	initPerFrame._CamPosition = { 1.0, 2.0, 3.0 };
 	QEConstantBuffer* VSTest = new QEConstantBuffer(sizeof(QuoteEngine::CB_PerModel), &initPerModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
 	QEConstantBuffer* WVP_W = new QEConstantBuffer(sizeof(QuoteEngine::CB_PerModel_WVP_W), &initPerModel, 0, QuoteEngine::SHADER_TYPE::VERTEX_SHADER);
-
-
+	QEConstantBuffer* Cam = new QEConstantBuffer(sizeof(QuoteEngine::CB_PerFrame_Cam), &initPerFrame, 0, QuoteEngine::SHADER_TYPE::PIXEL_SHADER);
+	QEConstantBuffer* Material = new QEConstantBuffer(sizeof(QuoteEngine::CB_PerModel_Material), &initMaterial, 1, QuoteEngine::SHADER_TYPE::PIXEL_SHADER);
 	HRESULT hr = S_OK;
 
 	QEShader* diffuseVertexShader = new QEShader();
@@ -110,8 +130,13 @@ HRESULT QuoteEngine::QERenderingModule::compileShadersAndCreateShaderPrograms()
 	std::unordered_map<std::string, QEConstantBuffer*> DiffusePerModel;
 	DiffusePerModel.insert({ "WVP_W", WVP_W });
 
+	std::unordered_map<std::string, QEConstantBuffer*> PSPerFrame;
+	PSPerFrame.insert({ "CAM", Cam });
+	PSPerFrame.insert({ "MATERIAL", Material });
+
 	vertexShader->addConstantBuffers(VSBuffers);
 	diffuseVertexShader->addConstantBuffers(DiffusePerModel);
+	diffusePixelShader->addConstantBuffers(PSPerFrame);
 
 	QEShader* pixelShader = new QEShader();
 	hr = pixelShader->compileFromFile(QuoteEngine::SHADER_TYPE::PIXEL_SHADER, L"Fragment.hlsl");
@@ -184,7 +209,7 @@ void QuoteEngine::QERenderingModule::createModels()
 
 	m_Models.back()->setWorldMatrix(DirectX::XMMatrixTranslation(0.5, 0.0, 0.5));
 
-	m_Models.push_back(std::make_unique<QEModel>("sphere"));
+	m_Models.push_back(std::make_unique<QEModel>("sphere2"));
 	m_Models.back()->setAssociatedShaderProgram("diffuseProgram");
 	m_Models.back()->setWorldMatrix(DirectX::XMMatrixTranslation(0.0, -0.5, 0.0));
 

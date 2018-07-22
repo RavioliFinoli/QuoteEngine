@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include <wrl.h> //ComPtr
 #include <string>
+#include "QETexture.h"
 
 namespace QuoteEngine
 {
@@ -35,6 +36,13 @@ namespace QuoteEngine
 class QEModel
 {
 public:
+	struct QEMaterial
+	{
+		float KsR, KsG, KsB, Ns;			//specular color + power
+		float KdR, KdG, KdB, UseTexture;	//diffuse color  + useTexture 'boolean'
+		float KaR, KaG, KaB, pad2;			//ambient color
+	};
+
 	QEModel(); //Default ctor for now, everything will be hard coded for the time being
 	QEModel(std::string file) noexcept;
 	~QEModel();
@@ -43,10 +51,12 @@ public:
 	UINT getStrideInBytes();
 	UINT getVertexCount();
 	std::string getAssociatedShaderProgram();
+	QEMaterial getMaterial();
 
 	DirectX::XMMATRIX getWorldMatrix();
 	void setWorldMatrix(DirectX::XMMATRIX);
 	void setAssociatedShaderProgram(std::string program);
+	void bindTexture();
 	bool hasAssociatedShaderProgram();
 private:
 
@@ -56,8 +66,10 @@ private:
 	UINT m_VertexCount = 0;
 	UINT m_StrideInBytes = 0;
 	DirectX::XMMATRIX m_WorldMatrix;
+	QEMaterial m_Material = {};
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_VertexBuffer;
+	std::unique_ptr<QuoteEngine::QETexture> m_Texture;
 
 	HRESULT create();
 };
