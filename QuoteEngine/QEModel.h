@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include <wrl.h> //ComPtr
 #include <string>
+#include <vector>
 #include "QETexture.h"
 
 namespace QuoteEngine
@@ -45,6 +46,7 @@ public:
 
 	QEModel(); //Default ctor for now, everything will be hard coded for the time being
 	QEModel(std::string file) noexcept;
+	QEModel(std::string file, std::string shaderProgram) noexcept;
 	~QEModel();
 	ID3D11Buffer* getVertexBuffer();
 	UINT getSizeInBytes();
@@ -52,10 +54,14 @@ public:
 	UINT getVertexCount();
 	std::string getAssociatedShaderProgram();
 	QEMaterial getMaterial();
-
+	void Update();
 	DirectX::XMMATRIX getWorldMatrix();
-	void setWorldMatrix(DirectX::XMMATRIX);
+	std::vector<DirectX::XMMATRIX>& getWorldMatrices();
+	void setWorldMatrix(DirectX::XMMATRIX worldMatrix, UINT instance);
+	void move(float x, float y, float z);
+	void rotate(float x, float y, float z);
 	void setAssociatedShaderProgram(std::string program);
+	void setRawTransformations(float* t, float* r, float* s);
 	void bindTexture();
 	bool hasAssociatedShaderProgram();
 private:
@@ -65,13 +71,18 @@ private:
 	UINT m_SizeInBytes = 0;
 	UINT m_VertexCount = 0;
 	UINT m_StrideInBytes = 0;
-	DirectX::XMMATRIX m_WorldMatrix;
+	std::vector<DirectX::XMMATRIX> m_WorldMatrices;
 	QEMaterial m_Material = {};
 
 	Microsoft::WRL::ComPtr<ID3D11Buffer> m_VertexBuffer;
 	std::unique_ptr<QuoteEngine::QETexture> m_Texture;
+	float m_Translation[3];
+	float m_Rotation[3];
+	float m_Scale[3];
+
 
 	HRESULT create();
+	void loadFromFile(std::string file);
 };
 
 inline UINT QEModel::getStrideInBytes()
@@ -96,10 +107,8 @@ inline UINT QEModel::getVertexCount()
 
 inline DirectX::XMMATRIX QEModel::getWorldMatrix()
 {
-	return m_WorldMatrix;
-}
-
-inline void QEModel::setWorldMatrix(DirectX::XMMATRIX matrix)
-{
-	m_WorldMatrix = matrix;
+	if (m_WorldMatrices.size())
+		return m_WorldMatrices[0];
+	else
+		return DirectX::XMMatrixIdentity();
 }

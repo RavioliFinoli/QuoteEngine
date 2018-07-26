@@ -47,6 +47,21 @@
     <FxCompile Include="DiffuseVertexShader.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PS_DRP1.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PS_DRP2.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VS_quad.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VS_passthrough.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GaussianBlurCS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -54,9 +69,6 @@
     </ClCompile>
     <ClCompile Include="QERenderingModule.cpp">
       <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="QEBuffer.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="QEShader.cpp">
       <Filter>Source Files</Filter>
@@ -91,13 +103,13 @@
     <ClCompile Include="WICTextureLoader\WICTextureLoader.cpp">
       <Filter>Graphics\WICTextureLoader</Filter>
     </ClCompile>
+    <ClCompile Include="QEScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QERenderingModule.h">
       <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="QEBuffer.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="QEShader.h">
       <Filter>Header Files</Filter>
@@ -149,6 +161,9 @@
     </ClInclude>
     <ClInclude Include="WICTextureLoader\WICTextureLoader.h">
       <Filter>Graphics\WICTextureLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="QEScene.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

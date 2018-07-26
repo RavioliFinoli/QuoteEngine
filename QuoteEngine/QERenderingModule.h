@@ -5,6 +5,7 @@
 #include <vector>
 #include "QEModel.h"
 #include "QEShader.h"
+#include "QEScene.h"
 
 //using QuoteEngine::QEShaderProgram;
 //using QuoteEngine::QEShader;
@@ -71,37 +72,58 @@ namespace QuoteEngine
 		static Microsoft::WRL::ComPtr<ID3D11DeviceContext> gDeviceContext;
 		static Microsoft::WRL::ComPtr<IDXGISwapChain> gSwapChain;
 		static Microsoft::WRL::ComPtr<ID3D11RenderTargetView> gBackbufferRTV;
+		static Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> gBackbufferUAV;
 		static Microsoft::WRL::ComPtr<ID3D11DepthStencilView> gDepthStencilView;
+		static Microsoft::WRL::ComPtr<ID3D11SamplerState> gSampleState;
+		static bool gUseDeferredShader;
+		static bool gBlur;
+		static INT gActiveScene;
+		static INT gSelectedModel;
+
 		static QuoteEngine::Camera gCamera;
 
 		void render();
 
-		QERenderingModule(HWND WindowHandle);
+		QERenderingModule(HWND WindowHandle, LONG width, LONG height);
 
 		HRESULT compileShadersAndCreateShaderPrograms();
 		void createModels();
-		
+		static INT getSceneCount();
+		static std::vector<std::string> getModelNamesInScene(INT sceneIndex);
+		static std::shared_ptr<QEModel> getModelInActiveScene(INT modelIndex);
+
 
 		~QERenderingModule();
 
 	private:
-		/*
-		*Vectors for models, shaders and shader programs.
-		*These will later be replaced by maps.
-		*/
+		
+		static INT m_s_SceneCount;
+		LONG m_Width;
+		LONG m_Height;
+
 		QEGUI m_gui;
 
 		std::vector<std::unique_ptr<QEModel>> m_Models;
-		std::vector<QuoteEngine::QEShader*> m_Shaders;
+		static std::vector<std::unique_ptr<QEScene>> m_s_Scenes;
+		std::vector<std::shared_ptr<QuoteEngine::QEShader>> m_Shaders;
+		std::unordered_map < std::string, std::shared_ptr<QuoteEngine::QEShader>> m_StandaloneShaders;
 		std::unordered_map < std::string, std::unique_ptr<QuoteEngine::QEShaderProgram >> m_ShaderPrograms;
 
-		std::unique_ptr<QuoteEngine::QEShaderProgram> createProgram(const std::string name, const std::vector<QEShader*>& shaders, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions, const size_t numElements);
+		std::unique_ptr<QuoteEngine::QEShaderProgram> createProgram(const std::string name, const std::vector<std::shared_ptr<QEShader>>& shaders, D3D11_INPUT_ELEMENT_DESC* inputElementDescriptions, const size_t numElements);
 
 
-		HRESULT createDirect3DContext(HWND wndHandle);
+		HRESULT createDirect3DContextAndBackbuffer(HWND wndHandle);
 		HRESULT createDepthStencilView();
 		void createViewport();
-	};
 
+
+		//Helpers
+		template <typename S>
+		std::shared_ptr<QuoteEngine::QEConstantBuffer> createConstantBuffer(S&, QuoteEngine::SHADER_TYPE, UINT bufferIndex = 0);
+		std::unordered_map<std::string, std::shared_ptr<QuoteEngine::QEConstantBuffer>> createConstantBufferMap(const std::vector<std::pair<std::string, std::shared_ptr<QuoteEngine::QEConstantBuffer>>>&);
+		void drawInstancesDeferred(std::unique_ptr<QEModel>& model);
+		void drawInstancesDeferred(std::shared_ptr<QEModel>& model);
+		void loadScenes(); //hardcoded file
+	};
 }
 

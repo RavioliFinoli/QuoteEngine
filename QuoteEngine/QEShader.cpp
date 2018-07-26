@@ -1,8 +1,9 @@
 #include "QEShader.h"
 #include "QERenderingModule.h"
 #include <d3dcompiler.h>
-#
+
 using Microsoft::WRL::ComPtr;
+using QuoteEngine::QERenderingModule;
 
 QuoteEngine::QEShader::QEShader()
 {
@@ -57,7 +58,7 @@ HRESULT QuoteEngine::QEShader::compileFromFile(QuoteEngine::SHADER_TYPE type, LP
 		nullptr,		// optional include files
 		entry.c_str(),		// entry point
 		shaderModel.c_str(),		// shader model (target)
-		D3DCOMPILE_DEBUG,	// shader compile options (DEBUGGING)
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,	// shader compile options (DEBUGGING)
 		0,				// IGNORE...DEPRECATED.
 		pVS.ReleaseAndGetAddressOf(),			// double pointer to ID3DBlob		
 		errorBlob.ReleaseAndGetAddressOf()		// pointer for Error Blob messages.
@@ -147,12 +148,12 @@ inline ID3DBlob * QuoteEngine::QEShader::getVSBlob()
 	return m_VSBlob.Get();
 }
 
-std::unordered_map<std::string, QuoteEngine::QEConstantBuffer*>* QuoteEngine::QEShader::getBuffers()
+std::unordered_map<std::string, std::shared_ptr<QuoteEngine::QEConstantBuffer>>* QuoteEngine::QEShader::getBuffers()
 {
 	return &m_ConstantBuffers;
 }
 
-void QuoteEngine::QEShader::addConstantBuffers(std::unordered_map<std::string, QEConstantBuffer*>& buffers)
+void QuoteEngine::QEShader::addConstantBuffers(std::unordered_map<std::string , std::shared_ptr<QEConstantBuffer>>& buffers)
 {
 	//whenever we add buffers, we add the ID3D11Buffer pointers to a vector for easier binding. They are ordered 
 	//by their slot in the shader. Gaps in this vector is not allowed, thus the shader should not have gaps in 
@@ -170,16 +171,12 @@ void QuoteEngine::QEShader::addConstantBuffers(std::unordered_map<std::string, Q
 	//TODO
 }
 
-void QuoteEngine::QEShader::addTextures(std::vector<QETexture*> textures)
-{
-	for (auto pair : textures)
-		m_Textures.push_back(pair);
-}
-
 void QuoteEngine::QEShader::updateBuffer(std::string key, PVOID value)
 {
 	m_ConstantBuffers.at(key)->update(value);
 }
+
+
 
 HRESULT QuoteEngine::QEShader::bindResources()
 {
@@ -206,6 +203,51 @@ HRESULT QuoteEngine::QEShader::bindResources()
 	return E_NOTIMPL;
 }
 
+HRESULT QuoteEngine::QEShaderProgram::bindShaderResourceViews()
+{
+	for (int i = 0; i < m_ShaderResources.size(); ++i)
+	{
+		switch (m_ShaderResources[i].second /*Shader type*/)
+		{
+		case SHADER_TYPE::PIXEL_SHADER:
+		{
+			QERenderingModule::gDeviceContext->PSSetShaderResources(i, 1, m_ShaderResources[i].first.GetAddressOf());
+			break;
+		}
+		case SHADER_TYPE::VERTEX_SHADER:
+		{
+			QERenderingModule::gDeviceContext->VSSetShaderResources(i, 1, m_ShaderResources[i].first.GetAddressOf());
+			break;
+		}
+		case SHADER_TYPE::GEOMETRY_SHADER:
+		{
+			QERenderingModule::gDeviceContext->GSSetShaderResources(i, 1, m_ShaderResources[i].first.GetAddressOf());
+			break;
+		}
+		case SHADER_TYPE::COMPUTE_SHADER:
+		{
+			QERenderingModule::gDeviceContext->CSSetShaderResources(i, 1, m_ShaderResources[i].first.GetAddressOf());
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	return S_OK;
+}
+
+HRESULT QuoteEngine::QEShaderProgram::bindRenderTargetViews()
+{
+	float clearColor[4] = { 1.0, 1.0, 1.0, 1.0 };
+	std::vector<ID3D11RenderTargetView*> v;
+	for (auto& rt : m_RenderTargets)
+	{
+		QERenderingModule::gDeviceContext->ClearRenderTargetView(rt.Get(), clearColor);
+		v.push_back(rt.Get());
+	}
+	QERenderingModule::gDeviceContext->OMSetRenderTargets(m_RenderTargets.size(), v.data(), QERenderingModule::gDepthStencilView.Get());
+	return S_OK;
+}
 
 QuoteEngine::QEShaderProgram::QEShaderProgram()
 {
@@ -213,11 +255,24 @@ QuoteEngine::QEShaderProgram::QEShaderProgram()
 
 QuoteEngine::QEShaderProgram::~QEShaderProgram()
 {
-	for (auto& buffer : m_ConstantBuffers)
-		delete buffer.second;
 }
 
-HRESULT QuoteEngine::QEShaderProgram::initializeShaders(const std::vector<QEShader*>& shaders)
+void QuoteEngine::QEShaderProgram::addRenderTargets(std::vector<ComPtr<ID3D11RenderTargetView>> renderTargets)
+{
+	m_RenderTargets = renderTargets;
+}
+
+void QuoteEngine::QEShaderProgram::addShaderResources(std::vector<std::pair<ComPtr<ID3D11ShaderResourceView>, SHADER_TYPE>> shaderResources)
+{
+	m_ShaderResources = shaderResources;
+}
+
+void QuoteEngine::QEShaderProgram::clearRenderTargets(bool value /*= true*/)
+{
+	m_ClearRenderTargets = value;
+}
+
+HRESULT QuoteEngine::QEShaderProgram::initializeShaders(const std::vector<std::shared_ptr<QEShader>>& shaders)
 {
 	if (shaders.size() != 4)
 		return E_INVALIDARG;
@@ -227,12 +282,12 @@ HRESULT QuoteEngine::QEShaderProgram::initializeShaders(const std::vector<QEShad
 	for (int i = 0; i < 4; i++)
 		m_Shaders[i] = shaders[i];
 
-	//Fetch consantbuffers from shaders
+	//Fetch constant buffers from shaders
 	for (auto shader : m_Shaders)
 	{
 		if (shader)
 		{
-			std::unordered_map<std::string, QEConstantBuffer*>* pBufferMap = shader->getBuffers();
+			std::unordered_map<std::string, std::shared_ptr<QEConstantBuffer>>* pBufferMap = shader->getBuffers();
 			for (auto buffer : *pBufferMap)
 			{
 				m_ConstantBuffers.insert({ buffer.first, buffer.second });
@@ -245,12 +300,19 @@ HRESULT QuoteEngine::QEShaderProgram::initializeShaders(const std::vector<QEShad
 
 HRESULT QuoteEngine::QEShaderProgram::initializeInputLayout(const D3D11_INPUT_ELEMENT_DESC * inputDesc, const UINT numElements)
 {
-	return QERenderingModule::gDevice->CreateInputLayout(inputDesc, numElements, m_Shaders[0]->getVSBlob()->GetBufferPointer(), m_Shaders[0]->getVSBlob()->GetBufferSize(), m_InputLayout.ReleaseAndGetAddressOf());
+	if (inputDesc)
+		return QERenderingModule::gDevice->CreateInputLayout(inputDesc, numElements, m_Shaders[0]->getVSBlob()->GetBufferPointer(), m_Shaders[0]->getVSBlob()->GetBufferSize(), m_InputLayout.ReleaseAndGetAddressOf());
+	else
+	{
+		ID3D11InputLayout * nullLayout = { nullptr };
+		m_InputLayout = nullLayout;
+		return E_NOTIMPL;
+	}
 }
 
 HRESULT QuoteEngine::QEShaderProgram::updateBuffer(std::string key, PVOID data)
 {
-	QEConstantBuffer* buffer = nullptr;
+	std::shared_ptr<QEConstantBuffer> buffer = nullptr;
 	try
 	{
 		buffer = m_ConstantBuffers.at(key);
@@ -265,11 +327,19 @@ HRESULT QuoteEngine::QEShaderProgram::updateBuffer(std::string key, PVOID data)
 		m_ConstantBuffers.at(key)->update(data);
 		return S_OK;
 	}
-	return E_FAIL;
+	else
+	{
+		return E_FAIL;
+	}
 }
 
 void QuoteEngine::QEShaderProgram::bind()
 {
+	if (m_ShaderResources.size())
+		bindShaderResourceViews();
+	if (m_RenderTargets.size())
+		bindRenderTargetViews();
+
 	for (auto shader : m_Shaders)
 	{
 		if (shader)
@@ -277,4 +347,12 @@ void QuoteEngine::QEShaderProgram::bind()
 	}
 
 	QERenderingModule::gDeviceContext->IASetInputLayout(m_InputLayout.Get());
+}
+
+void QuoteEngine::QEShaderProgram::unbind()
+{
+	ID3D11RenderTargetView* nullTargets[10] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+	ID3D11ShaderResourceView* nullResources[10] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
+	QERenderingModule::gDeviceContext->OMSetRenderTargets(m_RenderTargets.size(), nullTargets, QERenderingModule::gDepthStencilView.Get());
+	QERenderingModule::gDeviceContext->PSSetShaderResources(0, m_ShaderResources.size(), nullResources);
 }

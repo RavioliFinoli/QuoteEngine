@@ -7,7 +7,7 @@
 #define _CRTDBG_MAP_ALLOC  
 #include <stdlib.h>  
 #include <crtdbg.h>  
-
+#include <dxgidebug.h>
 #include <windows.h>
 
 #include <d3d11.h>
@@ -18,7 +18,8 @@
 #include "ImGUI/imgui_impl_dx11.h"
 #include "ImGUI/imgui_impl_win32.h"
 
-
+const LONG gWidth = 1280;
+const LONG gHeight = 720;
 
 
 using QuoteEngine::QERenderingModule;
@@ -27,7 +28,7 @@ using QuoteEngine::QEInputModule;
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dcompiler.lib")
 
-HWND InitWindow(HINSTANCE hInstance);
+HWND InitWindow(HINSTANCE hInstance, LONG width, LONG height);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow )
@@ -39,7 +40,7 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	_CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_DEBUG);
 	MSG msg = { 0 };
-	HWND wndHandle = InitWindow(hInstance);
+	HWND wndHandle = InitWindow(hInstance, gWidth, gHeight);
 	
 
 
@@ -50,11 +51,13 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 	ImGuiIO& io = ImGui::GetIO();
 
 
+
 	if (wndHandle)
 	{
-		QERenderingModule renderingModule(wndHandle);
+		QERenderingModule renderingModule(wndHandle, gWidth, gHeight);
 		renderingModule.compileShadersAndCreateShaderPrograms();
 		renderingModule.createModels();
+
 
 		QEInputModule inputModule(hInstance, wndHandle);
 
@@ -80,12 +83,11 @@ int WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdL
 		DestroyWindow(wndHandle);
 	}
 	ImGui::DestroyContext(imguiContext);
-
 	_CrtDumpMemoryLeaks();
 	return (int) msg.wParam;
 }
 
-HWND InitWindow(HINSTANCE hInstance)
+HWND InitWindow(HINSTANCE hInstance, LONG width, LONG height)
 {
 	WNDCLASSEX wcex = { 0 };
 	wcex.cbSize = sizeof(WNDCLASSEX); 
@@ -96,7 +98,7 @@ HWND InitWindow(HINSTANCE hInstance)
 	if (!RegisterClassEx(&wcex))
 		return false;
 
-	RECT rc = { 0, 0, 640, 480 };
+	RECT rc = { 0, 0, width, height };
 	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
 	HWND handle = CreateWindow(
@@ -115,8 +117,10 @@ HWND InitWindow(HINSTANCE hInstance)
 	return handle;
 }
 
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProc( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
+	ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam);
 	switch (message) 
 	{
 	case WM_DESTROY:

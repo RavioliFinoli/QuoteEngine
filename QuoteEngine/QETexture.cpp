@@ -4,7 +4,8 @@
 
 QuoteEngine::QETexture::QETexture(LPCWSTR file)
 {
-	HRESULT hr = DirectX::CreateWICTextureFromFile(QERenderingModule::gDevice.Get(), file, nullptr, m_texture.ReleaseAndGetAddressOf());
+	HRESULT hr = S_OK;
+	hr = DirectX::CreateWICTextureFromFile(QERenderingModule::gDevice.Get(), QERenderingModule::gDeviceContext.Get(), file, nullptr, m_texture.GetAddressOf());
 }
 
 QuoteEngine::QETexture::QETexture()

@@ -1,6 +1,7 @@
 Texture2D diffuse : register(t0);
 
-SamplerState sampAni; //default sampler
+SamplerState sampAni : register(s0);
+//default sampler
 
 struct PS_IN
 {
